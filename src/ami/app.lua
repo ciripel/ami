@@ -50,7 +50,9 @@ function remove_app_data()
     end
     for _, path in ipairs(_paths) do 
         local _ok, _error = eliFs.safe_remove(eliPath.combine("data", path), true)
-        ami_assert(_ok, "Failed to remove app data - " .. (_error or "") .. "!", EXIT_RM_DATA_ERROR)
+        if not _ok then 
+            ami_error("Failed to remove app data - " .. (_error or "") .. "!", EXIT_RM_DATA_ERROR)
+        end
     end
 end
 
@@ -67,7 +69,9 @@ function remove_app()
 
         if not _protectedFiles[eliPath.file(_file)] then
             local _ok, _error = eliFs.safe_remove(_file, true)
-            ami_assert(_ok, "Failed to remove '" .. _file .. "' - " .. (_error or "") .. "!", EXIT_RM_ERROR)
+            if not _ok then 
+                ami_error("Failed to remove '" .. _file .. "' - " .. (_error or "") .. "!", EXIT_RM_ERROR)
+            end
         end
     end
 end 
