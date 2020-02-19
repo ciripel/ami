@@ -1,0 +1,6 @@
+eli
+src/.CACHE/*
+src/app/*
+.local
+bin/*
+!bin/.gitkeep
