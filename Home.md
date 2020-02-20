@@ -1,1 +1,1 @@
-Welcome to the ami wiki!
+AMI - Application Management Interface - is standard/interface specification for creating maintainable application packages controlled by unified interface.
