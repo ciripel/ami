@@ -68,11 +68,11 @@ basicCliOptions = {
         type = "string",
         description = "Path to cache directory"
     },
-    ["local-pkgs"] = {
+    ["local-sources"] = {
         index = 5,
         aliases = { "ls" },
         type = "string",
-        description = "Path to h/json file with local pkgs definitions"
+        description = "Path to h/json file with local sources definitions"
     },
     version = {
         index = 6,

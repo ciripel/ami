@@ -4,3 +4,4 @@ src/app/*
 .local
 bin/*
 !bin/.gitkeep
+docs
