@@ -118,18 +118,6 @@ local function _get_pkg_specs(pkgPath)
     return _specs
 end
 
-local charset = {}  do -- [0-9a-zA-Z]
-    for c = 48, 57  do table.insert(charset, string.char(c)) end
-    for c = 65, 90  do table.insert(charset, string.char(c)) end
-    for c = 97, 122 do table.insert(charset, string.char(c)) end
-end
-
-local function randomString(length)
-    if not length or length <= 0 then return '' end
-    math.randomseed(os.time())
-    return randomString(length - 1) .. charset[math.random(1, #charset)]
-end
-
 local function _prepare_pkg(appType, options)
     if type(appType.id) ~= "string" then
         ami_error("Invalid pkg specification or definition!", EXIT_PKG_INVALID_DEFINITION)
@@ -145,8 +133,9 @@ local function _prepare_pkg(appType, options)
     if type(SOURCES) == 'table' and SOURCES[appType.id] then 
         local _localSource = SOURCES[appType.id]
         log_trace("Loading local package from path " .. _localSource)
-        local _tmp = eliPath.combine(CACHE_DIR, randomString(20))
-        eliZip.compress(_localSource, _tmp, { recurse = true, overwrite = true })
+        local _tmp = eliPath.combine(CACHE_DIR, eliUtil.random_string(20))
+        local _ok, _error = eliZip.safe_compress(_localSource, _tmp, { recurse = true, overwrite = true })
+        ami_assert(_ok, "Failed to compress local source directory: " .. (_error or ""), EXIT_PKG_LOAD_ERROR)
         _ok, _hash = _safe_hash_file(_tmp, {hex = true})
         ami_assert(_ok, "Failed to load package from local sources", EXIT_PKG_INTEGRITY_CHECK_ERROR)
         os.rename(_tmp, eliPath.combine(CACHE_DIR, _hash))

@@ -44,15 +44,13 @@ function prepare_app()
 end
 
 function remove_app_data()
-    local _ok, _paths = eliFs.safe_read_dir("data", true)
+    local _ok, _paths = eliFs.safe_read_dir("data", {recurse = true})
     if not _ok then 
         return -- dir does not exist
     end
     for _, path in ipairs(_paths) do 
-        local _ok, _error = eliFs.safe_remove(eliPath.combine("data", path), true)
-        if not _ok then 
-            ami_error("Failed to remove app data - " .. (_error or "") .. "!", EXIT_RM_DATA_ERROR)
-        end
+        local _ok, _error = eliFs.safe_remove(path)
+        ami_assert(_ok, "Failed to remove app data - " .. tostring(_error) .. "!", EXIT_RM_DATA_ERROR)
     end
 end
 
@@ -68,10 +66,8 @@ function remove_app()
         local _file = _files[i]
 
         if not _protectedFiles[eliPath.file(_file)] then
-            local _ok, _error = eliFs.safe_remove(_file, true)
-            if not _ok then 
-                ami_error("Failed to remove '" .. _file .. "' - " .. (_error or "") .. "!", EXIT_RM_ERROR)
-            end
+            local _ok, _error = eliFs.safe_remove(_file)
+            ami_assert("Failed to remove '" .. _file .. "' - " .. tostring(_error) .. "!", EXIT_RM_ERROR)
         end
     end
 end 

@@ -94,11 +94,11 @@ basicCliOptions = {
 
 local _parasedOptions = parse_args(_args, { options = basicCliOptions }, {strict = false, ignoreCommands = true })
 
-if _parasedOptions["local-pkgs"] then
-    local _ok, _localPkgsFile = eliFs.safe_read_file(_parasedOptions["local-pkgs"])
-    ami_assert(_ok, "Failed to read local sources file " .. _parasedOptions["local-pkgs"], EXIT_INVALID_SOURCES_FILE)
+if _parasedOptions["local-sources"] then
+    local _ok, _localPkgsFile = eliFs.safe_read_file(_parasedOptions["local-sources"])
+    ami_assert(_ok, "Failed to read local sources file " .. _parasedOptions["local-sources"], EXIT_INVALID_SOURCES_FILE)
     local _ok, _sources = pcall(_hjson.parse, _localPkgsFile)
-    ami_assert(_ok, "Failed to parse local sources file " .. _parasedOptions["local-pkgs"], EXIT_INVALID_SOURCES_FILE)
+    ami_assert(_ok, "Failed to parse local sources file " .. _parasedOptions["local-sources"], EXIT_INVALID_SOURCES_FILE)
     SOURCES = _sources
 end
 
