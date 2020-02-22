@@ -90,9 +90,11 @@ local function _get_pkg(pkgDef, options)
             local _ok, _code = _safe_download_file(pkgDef.source, _cachedPkgPath, {followRedirects = true})
             ami_assert(_ok and _code == 200, "Failed to get package " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
             _ok, _hash = _safe_hash_file(_cachedPkgPath, {hex = true})
+            ami_assert(_hash == pkgDef.sha256, "Failed to verify package integrity - " .. pkgDef.sha256 .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)
+            log_trace("Integrity checks of " .. pkgDef.sha256 .. " successful.")
+        else 
+            log_trace("Using cached version of " .. pkgDef.sha256)
         end
-        ami_assert(_hash == pkgDef.sha256, "Failed to verify package integrity - " .. pkgDef.sha256 .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)
-        log_trace("Integrity checks of " .. pkgDef.sha256 .. " successful.")
     else
         log_trace("Integrity checks disabled. Skipping ... ")
     end

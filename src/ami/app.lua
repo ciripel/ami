@@ -44,7 +44,7 @@ function prepare_app()
 end
 
 function remove_app_data()
-    local _ok, _paths = eliFs.safe_read_dir("data", {recurse = true})
+    local _ok, _paths = eliFs.safe_read_dir("data", {recurse = true, returnFullPaths = true})
     if not _ok then 
         return -- dir does not exist
     end
@@ -60,7 +60,7 @@ local _protectedFiles = {
 }
 
 function remove_app()
-    local _ok, _files = eliFs.safe_read_dir(".", {recurse = true})
+    local _ok, _files = eliFs.safe_read_dir(".", {recurse = true, returnFullPaths = true})
     ami_assert(_ok, "Failed to remove app - " .. (_error or "") .. "!", EXIT_RM_ERROR)
     for i=1, #_files do 
         local _file = _files[i]
