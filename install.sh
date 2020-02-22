@@ -1,7 +1,13 @@
 #!/bin/sh
 
 # install eli
-wget https://raw.githubusercontent.com/cryon-io/eli/master/install.sh -O /tmp/install.sh && sh /tmp/install.sh
+wget https://raw.githubusercontent.com/cryon-io/eli/master/install.sh -O /tmp/install.sh && sh /tmp/install.sh \
+&& ELI_DOWNLOADED="TRUE"
+
+if [ ! $ELI_DOWNLOADED = "TRUE" ]; then 
+    echo "Failed to download eli, please retry ... "
+    exit 1
+fi
 
 # install ami
 LATEST=$(curl -sL https://api.github.com/repos/cryon-io/ami/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g')
