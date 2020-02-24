@@ -18,30 +18,11 @@ local function append_to_url(p, ...)
     return p
 end
 
-local function _normalize_app_pkg_type(pkg)
-    if type(pkg.type) == "string" then
-        pkg.type = {
-            id = pkg.type,
-            repository = "https://raw.githubusercontent.com/cryon-io/air/master/",
-            version = "latest"
-        }
-    end
-    ami_assert(type(APP.type) == "table", "Invalid pkg type!", EXIT_INVALID_PKG_TYPE)
-    if type(APP.type.repository) ~= 'string' then 
-        APP.type.repository = "https://raw.githubusercontent.com/cryon-io/air/master/"
-    elseif APP.type.repository ~= "https://raw.githubusercontent.com/cryon-io/air/master/" then
-        log_warn("Using external repository - " .. APP.type.repository)
-    end
-end
-
 local function _normalize_pkg_type(pkgType)
     if pkgType.version == nil then
         pkgType.version = "latest"
     end
     ami_assert(type(pkgType.version) == "string", "Invalid pkg version", EXIT_INVALID_PKG_VERSION)
-    if not pkgType.version:find(".json") then
-        pkgType.version = pkgType.version .. ".json"
-    end
     if type(pkgType.repository) ~= 'string' then
         pkgType.repository = "https://raw.githubusercontent.com/cryon-io/air/master/"
     end
@@ -49,13 +30,13 @@ end
 
 local function _get_pkg_def(appType)
     local _pkgId = appType.id:gsub("%.", "/")
-    local _defUrl = append_to_url(appType.repository, "definitions", _pkgId, appType.version)
+    local _defUrl = append_to_url(appType.repository, "definitions", _pkgId, appType.version, ".json")
 
     local _ok, _code, _pkgDefJson = _safe_download_string(_defUrl)
     log_trace("Downloading " .. appType.id .. " definition...")
     if not _ok or _code ~= 200 then
         log_trace("Failed to download " .. appType.id .. " definition. Looking for local copy...")
-        local _ok, _pkgDefJson = _safe_read_file(eliPath.combine(CACHE_DIR_DEFS, appType.id))
+        _ok, _pkgDefJson = _safe_read_file(eliPath.combine(CACHE_DIR_DEFS, appType.id))
         ami_assert(_ok, "Failed to download or load cached package definition... " , EXIT_PKG_INVALID_DEFINITION)
     else
         local _defLocalCopyPath = eliPath.combine(CACHE_DIR_DEFS, appType.id)
@@ -259,7 +240,8 @@ local function _generate_model(modelInfo)
 end
 
 return {
-    normalize_pkg_type = _normalize_app_pkg_type,
+    normalize_pkg_type = _normalize_pkg_type,
+    get_pkg_def = _get_pkg_def,
     prepare_pkg = _prepare_pkg,
     unpack_layers = _unpack_layers,
     generate_model = _generate_model

@@ -57,11 +57,11 @@ basicCliOptions = {
         type = "string",
         description = "Log level - trace/debug/info/warn/error"
     },
-    ["log-format"] = {
+    ["output-format"] = {
         index = 3,
-        aliases = {"lf"},
+        aliases = {"of"},
         type = "string",
-        description = "Log format - json/standard/auto"
+        description = "Log format - json/standard"
     },
     ["cache"] = {
         index = 4,
@@ -140,9 +140,12 @@ if _parasedOptions.cache then
     set_cache_dir(_parasedOptions.cache)
 end
 
-if _parasedOptions["log-format"] then
-    GLOBAL_LOGGER.options.format = _parasedOptions["log-format"]
-    log_debug("Log format set to '" .. _parasedOptions["log-format"] .. "'.")
+if _parasedOptions["output-format"] then
+    GLOBAL_LOGGER.options.format = _parasedOptions["output-format"]
+    log_debug("Log format set to '" .. _parasedOptions["output-format"] .. "'.")
+    if _parasedOptions["output-format"] == 'json' then 
+        OUTPUT_FORMAT = 'json'
+    end
 end
 
 if _parasedOptions["log-level"] then

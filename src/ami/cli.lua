@@ -1,4 +1,4 @@
-local _eliUtil = require"eli.util"
+local _eliUtil = require "eli.util"
 local keys = _eliUtil.keys
 --[[
     Parses value into required type if possible.
@@ -6,7 +6,7 @@ local keys = _eliUtil.keys
     @param {string} _type
 ]]
 local function parse_value(value, _type)
-    if type(value) ~= 'string' then 
+    if type(value) ~= "string" then
         return value
     end
 
@@ -111,7 +111,6 @@ end
     @param {table{}} options
     @param {table{}} commands
 ]]
-
 function parse_args(args, scheme, options)
     if not _eliUtil.is_array(args) then
         args = eliCli.parse_args()
@@ -127,7 +126,7 @@ function parse_args(args, scheme, options)
     local _to_map = function(t)
         local _result = {}
         for k, v in pairs(t) do
-            local _def =  _eliUtil.merge_tables({ id = k }, v)
+            local _def = _eliUtil.merge_tables({id = k}, v)
             if type(v.aliases) == "table" then
                 for j, a in ipairs(v.aliases) do
                     _result[a] = _def
@@ -150,18 +149,26 @@ function parse_args(args, scheme, options)
         local _arg = args[i]
         if _arg.type == "option" then
             local _cliOptionDef = _cliOptionsMap[_arg.id]
-            ami_assert(type(_cliOptionDef) == "table", "Unknown option - '" .. _arg.arg .. "'!", EXIT_CLI_OPTION_UNKNOWN)
+            ami_assert(
+                type(_cliOptionDef) == "table",
+                "Unknown option - '" .. _arg.arg .. "'!",
+                EXIT_CLI_OPTION_UNKNOWN
+            )
             _cliOptionList[_cliOptionDef.id] = parse_value(_arg.value, _cliOptionDef.type)
         else
-            if not options.ignoreCommands then 
-                _cliCmd = _cliCmdMap[_arg.arg] 
-                ami_assert(type(_cliCmd) == "table", "Unknown command '" .. (_arg.arg or "") .."'!" , EXIT_CLI_CMD_UNKNOWN)
+            if not options.ignoreCommands then
+                _cliCmd = _cliCmdMap[_arg.arg]
+                ami_assert(
+                    type(_cliCmd) == "table",
+                    "Unknown command '" .. (_arg.arg or "") .. "'!",
+                    EXIT_CLI_CMD_UNKNOWN
+                )
                 _lastIndex = i + 1
             end
             break
         end
     end
-   -- require"eli.util".print_table(_cliOptionList)
+    -- require"eli.util".print_table(_cliOptionList)
     _remainingArgs = {table.unpack(args, _lastIndex)}
     return _cliOptionList, _cliCmd, _remainingArgs
 end
@@ -174,13 +181,13 @@ local function default_validate_args(cli, optionList, command)
     local commands = type(cli.commands) == "table" and cli.commands or {}
 
     local _error = "Command not specified!"
-    if cli.commandRequired and not command then 
+    if cli.commandRequired and not command then
         return false, _error
     end
 
     for k, v in pairs(options) do
         if v and v.required then
-            if not optionList[k] then 
+            if not optionList[k] then
                 return false, "Required option not specified! (" .. k .. ")"
             end
         end
@@ -195,7 +202,7 @@ end
 ]]
 function process_cli(cli, args)
     ami_assert(cli, "cli scheme not provided!", EXIT_CLI_SCHEME_MISSING)
-    if args == nil then 
+    if args == nil then
         args = eliCli.parse_args()
     end
 
@@ -203,15 +210,18 @@ function process_cli(cli, args)
 
     local cliId = cli.id and "(" .. cli.id .. ")" or ""
     local action = cli.action
-    ami_assert(type(action) == "table", "Action not specified properly or not found! " .. cliId, EXIT_CLI_ACTION_MISSING)
+    ami_assert(
+        type(action) == "table",
+        "Action not specified properly or not found! " .. cliId,
+        EXIT_CLI_ACTION_MISSING
+    )
 
     if action.type == "external" then
         return exec_external_action(action.exec, args, action.readOutput)
     end
 
-    local optionList, command, remainingArgs =
-        parse_args(args, cli)
-    
+    local optionList, command, remainingArgs = parse_args(args, cli)
+
     local _valid, _error = validate(cli, optionList, command)
     ami_assert(_valid, _error, EXIT_CLI_ARG_VALIDATION_ERROR)
 
@@ -302,7 +312,7 @@ local function generate_help_message(cli)
         local sort_function = function(a, b)
             return compare_args(cli.options, a, b)
         end
-        table.sort(options, sort_function) 
+        table.sort(options, sort_function)
 
         for _, k in ipairs(options) do
             local v = cli.options[k]
@@ -323,7 +333,7 @@ local function generate_help_message(cli)
                 else
                     _aliases = _aliases .. "=<" .. k .. ">" .. " "
                 end
-            else 
+            else
                 _aliases = "--" .. k
             end
             table.insert(rows, {left = _aliases, description = v.description or ""})
@@ -337,7 +347,7 @@ local function generate_help_message(cli)
         local sort_function = function(a, b)
             return compare_args(cli.commands, a, b)
         end
-        table.sort(commands, sort_function) 
+        table.sort(commands, sort_function)
 
         for _, k in ipairs(commands) do
             local v = cli.commands[k]
@@ -383,19 +393,23 @@ function show_cli_help(cli, options)
     elseif type(cli.help_message) == "string" then
         print(cli.help_message)
     else
-        -- collect and print help
-        if title then
-            print(title)
-            print()
+        if OUTPUT_FORMAT == "json" then
+            print(require "hjson".stringify(cli.commands, {invalidObjectsAsType = true, indent = false}))
+        else
+            -- collect and print help
+            if title then
+                print(title)
+                print()
+            end
+            if description then
+                print(description)
+                print()
+            end
+            if printUsage then
+                print(generate_usage(cli, includeOptionsInUsage))
+                print()
+            end
+            print(generate_help_message(cli))
         end
-        if description then
-            print(description)
-            print()
-        end
-        if printUsage then
-            print(generate_usage(cli, includeOptionsInUsage))
-            print()
-        end
-        print(generate_help_message(cli))
     end
 end
