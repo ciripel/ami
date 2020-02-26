@@ -132,14 +132,15 @@ local function _prepare_pkg(appType, options)
     local _specs = _get_pkg_specs(_cachedPkgPath)
 
     local _res = {}
-
+    local _verTree = { id = appType.id, version = _pkgDef.version, wanted_version = appType.version, repository = appType.repository, dependencies = {} }
+   
     local _model = {model = nil, extensions = {}}
     if eliUtil.is_array(_specs.dependencies) then
         log_trace("Collection " .. appType.id .. " dependencies...")
         for _, dependency in pairs(_specs.dependencies) do
             log_trace("Collecting dependency " .. (type(dependency) == "table" and dependency.id or "n." .. _) .. "...")
 
-            local _subRes, _subModel = _prepare_pkg(dependency)
+            local _subRes, _subModel, _subVerTree = _prepare_pkg(dependency)
             if type(_subModel.model) == "table" then
                 -- we overwrite entire model with extension if we didnt get extensions only
                 _model = _subModel
@@ -147,6 +148,7 @@ local function _prepare_pkg(appType, options)
                 _model = eliUtil.merge_tables(_model, _subModel, true)
             end
             _res = eliUtil.merge_tables(_res, _subRes, true)
+            table.insert(_verTree.dependencies, _subVerTree)
         end
         log_trace("Dependcies of " .. appType.id .. " successfully collected.")
     else
@@ -176,7 +178,7 @@ local function _prepare_pkg(appType, options)
         end
     end
     log_trace("Preparation of " .. appType.id .. " complete.")
-    return _res, _model
+    return _res, _model, _verTree
 end
 
 local function _unpack_layers(fileList)
@@ -239,7 +241,44 @@ local function _generate_model(modelInfo)
     ami_assert(_ok, "Failed to write model.lua!", EXIT_PKG_MODEL_GENERATION_ERROR)
 end
 
+local function _is_pkg_update_available(pkg, currentVer)
+    if type(currentVer) ~= 'string' then 
+        currentVer = pkg.version
+    end
+    log_trace("Checking update availability of " .. pkg.id)
+    _normalize_pkg_type(pkg)
+
+    if pkg.wanted_version ~= 'latest' and pkg.wanted_version ~= nil then 
+        log_trace("Static version detected, update suppressed.")
+        return false
+    end
+
+    local _pkgDef = _get_pkg_def(pkg)
+    if type(currentVer) ~= 'string' then 
+        log_trace("New version available...")
+        return true, pkg.id, _pkgDef.version
+    end
+
+    if eliUtil.compare_version(_pkgDef.version, currentVer) > 0 then 
+        log_trace("New version available...")
+        return true, pkg.id, _pkgDef.version
+    end
+
+    if eliUtil.is_array(pkg.dependencies) then 
+        for _, dep in ipairs(pkg.dependencies) do 
+            local _available, _id, _ver = _is_pkg_update_available(dep, dep.version)
+            if _available then 
+                log_trace("New version of child package found...")
+                return true, _id, _ver
+            end
+        end
+    end
+
+    return false
+end
+
 return {
+    is_pkg_update_available = _is_pkg_update_available,
     normalize_pkg_type = _normalize_pkg_type,
     get_pkg_def = _get_pkg_def,
     prepare_pkg = _prepare_pkg,

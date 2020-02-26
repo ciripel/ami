@@ -164,10 +164,10 @@ AMI = {
                         return
                     end
 
-                    local _available, _ver = is_update_available()
-                    ami_assert(not _available, "Found new version " .. _ver ..  ", please run setup...",
-                        EXIT_SETUP_REQUIRED
-                    )
+                    local _available, _id, _ver = is_update_available()
+                    if _available then 
+                        ami_error("Found new version " .. _ver ..  " of " .. _id .. ", please run setup...", EXIT_SETUP_REQUIRED)
+                    end
                     log_info("Application is up to date.")
                 end
             }

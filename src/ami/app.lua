@@ -53,33 +53,32 @@ end
 
 function prepare_app()
     log_info("Preparing the application...")
-    local _fileList, _modelInfo = _amiPkg.prepare_pkg(APP.type)
+    local _fileList, _modelInfo, _verTree = _amiPkg.prepare_pkg(APP.type)
+    
     _amiPkg.unpack_layers(_fileList)
     _amiPkg.generate_model(_modelInfo)
+    eliFs.write_file(".version-tree.json", hjson.stringify_to_json(_verTree))
     load_app_details()
 end
 
 function is_update_available()
     _normalize_app_pkg_type(APP)
-    _amiPkg.normalize_pkg_type(APP.type)
-    if APP.type.version ~= 'latest' and APP.type.version ~= nil then 
-        return 
-    end
 
-    local _ok, _specsFile = eliFs.safe_read_file("specs.json")
-    ami_assert(_ok, "Failed to load app specs.json", EXIT_APP_UPDATE_ERROR)
-    local _ok, _specs = pcall(hjson.parse, _specsFile)
-    ami_assert(_ok, "Failed to parse app specs.json", EXIT_APP_UPDATE_ERROR)
-
-    local _pkgDef = _amiPkg.get_pkg_def(APP.type)
-    if type(_specs.version) ~= 'string' then 
-        return true, _pkgDef.version
+    local _ok, _verTreeJson = eliFs.safe_read_file(".version-tree.json", hjson.stringify_to_json(_verTree))
+    local _verTree = {}
+    if _ok then
+        _ok, _verTree = pcall(hjson.parse, _verTreeJson)
     end
-
-    if eliUtil.compare_version(_pkgDef.version, _specs.version) > 0 then 
-        return true, _pkgDef.version
+    if not _ok then 
+        log_warn("Version tree not found. Running update check against specs...")
+        local _ok, _specsFile = eliFs.safe_read_file("specs.json")
+        ami_assert(_ok, "Failed to load app specs.json", EXIT_APP_UPDATE_ERROR)
+        local _ok, _specs = pcall(hjson.parse, _specsFile)
+        ami_assert(_ok, "Failed to parse app specs.json", EXIT_APP_UPDATE_ERROR)    
+        return _amiPkg.is_pkg_update_available(APP.type, _specs.version)
     end
-    return false
+    log_trace("Using .version-tree.json for update availability check.")
+    return _amiPkg.is_pkg_update_available(_verTree, _verTree.version)
 end
 
 function remove_app_data()
