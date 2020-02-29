@@ -1,5 +1,5 @@
 REPOSITORY_URL = 'https://raw.githubusercontent.com/cryon-io/air/master/'
-AMI_VERSION = "0.0.1"
+AMI_VERSION = "0.0.5"
 AMI_ABOUT = "AMI - Application Management Interface cli " .. AMI_VERSION ..  " (C) 2020 cryon.io"
 
 eliPath = require "eli.path"
