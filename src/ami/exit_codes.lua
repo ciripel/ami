@@ -5,6 +5,8 @@ local _exitCodes = {
     EXIT_MISSING_API = 4,
     EXIT_ELEVATION_REQUIRED = 5,
     EXIT_SETUP_REQUIRED = 6,
+    EXIT_UNSUPPORTED_PLATFORM = 7,
+    EXIT_MISSING_PERMISSION = 8,
 
     EXIT_INVALID_CONFIGURATION = 10,
 
@@ -50,6 +52,7 @@ local _exitCodes = {
     EXIT_PKG_MODEL_GENERATION_ERROR = 97,
 
     EXIT_INVALID_SOURCES_FILE = 99
+    -- 100 - 150 reserved for unit
 }
 
 for k,v in pairs(_exitCodes) do 
