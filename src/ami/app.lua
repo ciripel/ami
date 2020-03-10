@@ -29,11 +29,7 @@ local function _normalize_app_pkg_type(pkg)
 end
 
 function load_app_details()
-    _path = "app.hjson"
-    if not eliFs.exists(_path) then
-        _path = "app.json"
-    end
-    local _ok, _configContent = eliFs.safe_read_file(_path)
+    local _ok, _configContent = eliFs.safe_read_file(APP_CONFIGURATION_PATH)
     if _ok then 
         _ok, APP = pcall(hjson.parse, _configContent)
         if not _ok then 
@@ -92,10 +88,10 @@ function remove_app_data()
     end
 end
 
-local _protectedFiles = {
-    ["app.hjson"] = true,
-    ["app.json"] = true
-}
+local _protectedFiles = {}
+for i, configCandidate in ipairs(APP_CONFIGURATION_CANDIDATES) do 
+    _protectedFiles[configCandidate] = true
+end
 
 function remove_app()
     local _ok, _files = eliFs.safe_read_dir(".", {recurse = true, returnFullPaths = true})

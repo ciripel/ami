@@ -30,7 +30,7 @@ end
 
 local function _get_pkg_def(appType)
     local _pkgId = appType.id:gsub("%.", "/")
-    local _defUrl = append_to_url(appType.repository, "definitions", _pkgId, appType.version, ".json")
+    local _defUrl = append_to_url(appType.repository, "definitions", _pkgId, appType.version .. ".json")
 
     local _ok, _code, _pkgDefJson = _safe_download_string(_defUrl)
     log_trace("Downloading " .. appType.id .. " definition...")

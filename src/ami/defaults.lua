@@ -1,6 +1,8 @@
 REPOSITORY_URL = "https://raw.githubusercontent.com/cryon-io/air/master/"
 AMI_VERSION = "0.0.6"
 AMI_ABOUT = "AMI - Application Management Interface cli " .. AMI_VERSION .. " (C) 2020 cryon.io"
+APP_CONFIGURATION_CANDIDATES = { "app.hjson", "app.json" } 
+APP_CONFIGURATION_PATH = nil
 
 eliPath = require "eli.path"
 eliFs = require "eli.fs"
@@ -119,25 +121,10 @@ if _parasedOptions.path then
     end
 end
 
--- load configuration
-local _ok, _configJson = eliFs.safe_read_file("/etc/ami/ami.json")
-if not _ok then
-    _ok, _configJson = eliFs.safe_read_file("/etc/ami/ami.hjson")
-end
-if not _ok then
-    _ok, _configJson = eliFs.safe_read_file("~/.ami/ami.json")
-end
-if not _ok then
-    _ok, _configJson = eliFs.safe_read_file("~/.ami/ami.hjson")
-end
-if _ok then
-    log_trace("Found configuration file, loading...")
-    local _ok, _config = pcall(_hjson.parse, _configJson)
-    if _ok then
-        log_trace("Configuration successfully loaded...")
-        if _config.CACHE_DIR then
-            set_cache_dir(_config.CACHE_DIR)
-        end
+for i, configCandidate in ipairs(APP_CONFIGURATION_CANDIDATES) do 
+    if eliFs.exists(configCandidate) then 
+        APP_CONFIGURATION_PATH = configCandidate
+        break
     end
 end
 
@@ -158,7 +145,7 @@ if _parasedOptions["log-level"] then
     log_debug("Log level set to '" .. _parasedOptions["log-level"] .. "'.")
 end
 
-if not eliFs.exists("app.hjson") and not eliFs.exists("app.hjson") then
+if type(APP_CONFIGURATION_PATH) ~= 'string' then
     -- we are working without app configuration, expose default options
     if _parasedOptions.version then
         print(AMI_VERSION)
