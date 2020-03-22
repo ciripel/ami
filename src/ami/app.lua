@@ -77,6 +77,22 @@ function is_update_available()
     return _amiPkg.is_pkg_update_available(_verTree, _verTree.version)
 end
 
+function get_app_version() 
+    _normalize_app_pkg_type(APP)
+
+    local _ok, _verTreeJson = eliFs.safe_read_file(".version-tree.json", hjson.stringify_to_json(_verTree))
+    local _verTree = {}
+    if _ok then
+        _ok, _verTree = pcall(hjson.parse, _verTreeJson)
+    end
+    if not _ok then 
+        log_warn("Version tree not found. Can not get the version...")
+        return "unknown"
+    else 
+        return _verTree.version
+    end
+end
+
 function remove_app_data()
     local _ok, _paths = eliFs.safe_read_dir("data", {recurse = true, returnFullPaths = true})
     if not _ok then 
