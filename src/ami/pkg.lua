@@ -24,13 +24,13 @@ local function _normalize_pkg_type(pkgType)
     end
     ami_assert(type(pkgType.version) == "string", "Invalid pkg version", EXIT_INVALID_PKG_VERSION)
     if type(pkgType.repository) ~= 'string' then
-        pkgType.repository = "https://raw.githubusercontent.com/cryon-io/air/master/"
+        pkgType.repository = "https://raw.githubusercontent.com/cryon-io/air/master/ami/"
     end
 end
 
 local function _get_pkg_def(appType)
     local _pkgId = appType.id:gsub("%.", "/")
-    local _defUrl = append_to_url(appType.repository, "definitions", _pkgId, appType.version .. ".json")
+    local _defUrl = append_to_url(appType.repository, "definition", _pkgId, appType.version .. ".json")
 
     local _ok, _code, _pkgDefJson = _safe_download_string(_defUrl)
     log_trace("Downloading " .. appType.id .. " definition...")
