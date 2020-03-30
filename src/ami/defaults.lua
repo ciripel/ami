@@ -1,4 +1,4 @@
-REPOSITORY_URL = "https://raw.githubusercontent.com/cryon-io/air/master/"
+REPOSITORY_URL = "https://raw.githubusercontent.com/cryon-io/air/master/ami/"
 AMI_VERSION = "0.0.7"
 AMI_ABOUT = "AMI - Application Management Interface cli " .. AMI_VERSION .. " (C) 2020 cryon.io"
 APP_CONFIGURATION_CANDIDATES = { "app.hjson", "app.json" } 

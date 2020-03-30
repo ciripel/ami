@@ -16,14 +16,14 @@ local function _normalize_app_pkg_type(pkg)
     if type(pkg.type) == "string" then
         pkg.type = {
             id = pkg.type,
-            repository = "https://raw.githubusercontent.com/cryon-io/air/master/",
+            repository = REPOSITORY_URL,
             version = "latest"
         }
     end
     ami_assert(type(APP.type) == "table", "Invalid pkg type!", EXIT_INVALID_PKG_TYPE)
     if type(APP.type.repository) ~= 'string' then 
-        APP.type.repository = "https://raw.githubusercontent.com/cryon-io/air/master/"
-    elseif APP.type.repository ~= "https://raw.githubusercontent.com/cryon-io/air/master/" then
+        APP.type.repository = REPOSITORY_URL
+    elseif APP.type.repository ~= REPOSITORY_URL then
         log_warn("Using external repository - " .. APP.type.repository)
     end
 end
