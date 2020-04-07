@@ -15,7 +15,7 @@ local function get_extensions()
 end
 
 _eliProc.chdir("src")
-amalg("-o", "../bin/ami.lua", "-d", "-s", "amic.lua", get_extensions())--, get_extensions())
+amalg("-o", "../bin/ami.lua", "-s", "amic.lua", get_extensions())--, get_extensions())
 
 local _exitCodes = require("ami.exit_codes")
 local _exitCodesJson = _hjson.stringify_to_json(_exitCodes, { item_sort_key = function (k1, k2) 
