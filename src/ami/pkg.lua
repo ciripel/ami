@@ -32,10 +32,11 @@ local function _get_pkg_def(appType)
     local _pkgId = appType.id:gsub("%.", "/")
     local _defUrl = append_to_url(appType.repository, "definition", _pkgId, appType.version .. ".json")
 
-    local _ok, _code, _pkgDefJson = _safe_download_string(_defUrl)
     log_trace("Downloading " .. appType.id .. " definition...")
-    if not _ok or _code ~= 200 then
-        log_trace("Failed to download " .. appType.id .. " definition. Looking for local copy...")
+    local _ok, _pkgDefJson = _safe_download_string(_defUrl)
+    if not _ok then
+        log_warn("Failed to download " .. appType.id .. " definition - " .. (_pkgDefJson or ""))
+        log_trace("Looking for local copy...")
         _ok, _pkgDefJson = _safe_read_file(eliPath.combine(CACHE_DIR_DEFS, appType.id))
         ami_assert(_ok, "Failed to download or load cached package definition... " , EXIT_PKG_INVALID_DEFINITION)
     else
@@ -68,8 +69,8 @@ local function _get_pkg(pkgDef, options)
     if options.noIntegrityChecks ~= true then
         local res, _hash = _safe_hash_file(_cachedPkgPath, {hex = true})
         if not res or _hash ~= pkgDef.sha256 then
-            local _ok, _code = _safe_download_file(pkgDef.source, _cachedPkgPath, {followRedirects = true})
-            ami_assert(_ok and _code == 200, "Failed to get package " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
+            local _ok, _error = _safe_download_file(pkgDef.source, _cachedPkgPath, {followRedirects = true})
+            ami_assert(_ok, "Failed to get package ".. (_error or "") .. " - " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
             _ok, _hash = _safe_hash_file(_cachedPkgPath, {hex = true})
             ami_assert(_hash == pkgDef.sha256, "Failed to verify package integrity - " .. pkgDef.sha256 .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)
             log_trace("Integrity checks of " .. pkgDef.sha256 .. " successful.")
