@@ -82,12 +82,21 @@ local function exec_external_action(exec, args, readOutput)
 end
 
 --[[
-    Executes internal action - (lua file module)
+    Executes native action - (lua file module)
     @param {string} modulePath
     @params {any{}} ... 
 ]]
-local function exec_internal_action(modulePath, ...)
-    return loadfile(modulePath)(...)
+local function exec_native_action(action, ...)
+    if type(action) == "string" then
+        loadfile(action)(...)
+    elseif type(action) == "table" then
+        -- DEPRECATED
+        log_warn("DEPRECATED: Code actions are deprecated and will be removed in future.")
+        log_info("HINT: Consider defining action as function or usage of type 'native' pointing to lua file...")
+        return exec_code_action(action.code, optionList, command, remainingArgs, cli)
+    else
+        error("Unsupported action.code type!")
+    end
 end
 
 --[[
@@ -168,7 +177,7 @@ function parse_args(args, scheme, options)
             break
         end
     end
-    -- require"eli.util".print_table(_cliOptionList)
+
     _remainingArgs = {table.unpack(args, _lastIndex)}
     return _cliOptionList, _cliCmd, _remainingArgs
 end
@@ -216,7 +225,7 @@ function process_cli(cli, args)
         EXIT_CLI_ACTION_MISSING
     )
 
-    if action.type == "external" then
+    if type(action) == "table" and action.type == "external" then
         return exec_external_action(action.exec, args, action.readOutput)
     end
 
@@ -231,11 +240,7 @@ function process_cli(cli, args)
         table.insert(command.__commandStack, command and command.id)
     end
 
-    if action.type == "internal" then
-        return exec_internal_action(action.path, optionList, command, remainingArgs, cli)
-    elseif action.type == "code" then
-        return exec_code_action(action.code, optionList, command, remainingArgs, cli)
-    end
+    exec_native_action(action, optionList, command, remainingArgs, cli)
 end
 
 -- //TODO: handle usage generation for parent commands

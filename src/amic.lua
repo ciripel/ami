@@ -50,16 +50,13 @@ AMI = {
             options = {
                 help = HELP_OPTION
             },
-            action = {
-                type = "code",
-                code = function(_options, command, args, cli)
-                    if _options.help then
-                        show_cli_help(cli)
-                        return
-                    end
-                    ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+            action = function(_options, command, args, cli)
+                if _options.help then
+                    show_cli_help(cli)
+                    return
                 end
-            }
+                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+            end
         },
         setup = {
             index = 1,
@@ -67,6 +64,10 @@ AMI = {
             summary = "Run setups based on specified options app/configure",
             options = {
                 help = HELP_OPTION,
+                environment = {
+                    index = 0,
+                    description = "Creates application environment"
+                },
                 app = {
                     index = 1,
                     description = "Generates app folder structure and files"
@@ -74,46 +75,60 @@ AMI = {
                 configure = {
                     index = 2,
                     description = "Configures application and renders templates"
+                },
+                ["no-validate"] = {
+                    index = 3,
+                    description = "Disables platform and configuration validation"
                 }
             },
-            action = {
-                type = "code",
-                code = function(_options, command, args, cli)
-                    if _options.help then
-                        show_cli_help(cli)
-                        return
-                    end
-                    local _noOptions = #eliUtil.keys(_options) == 0
-                    if _noOptions or _options.app then
-                        prepare_app(APP)
-                        -- You should not use next 2 lines in your app
-                        if load_sub_ami() then
-                            process_cli(AMI, arg)
-                        end
-                    end
-                    if _noOptions or _options.configure then
-                        render_templates(APP)
+            action = function(_options, command, args, cli)
+                if _options.help then
+                    show_cli_help(cli)
+                    return
+                end
+                local _noOptions = #eliUtil.keys(_options) == 0
+
+                local _subAmiLoaded = false
+                if _noOptions or _options.environment then
+                    prepare_app(APP)
+                    -- no need to load sub ami in your app ami
+                    _subAmiLoaded = load_sub_ami()
+                end
+
+                -- You should not use next 5 lines in your app
+                if _noOptions or _options.app then
+                    if _subAmiLoaded then
+                        process_cli(AMI, arg)
                     end
                 end
-            }
+
+                if _noOptions or _options.configure then
+                    render_templates(APP)
+                end
+            end
         },
         validate = {
             index = 2,
             description = _cmdImplementationStatus .. " ami 'validate' sub command",
             summary = _cmdImplementationStatus .. " Validates app configuration and platform support",
             options = {
-                help = HELP_OPTION
+                help = HELP_OPTION,
+                platform = {
+                    index = 1,
+                    description = "Validates application platform"
+                },
+                configuration = {
+                    index = 2,
+                    description = "Validates application configuration"
+                }
             },
-            action = {
-                type = "code",
-                code = function(_options, command, args, cli)
-                    if _options.help then
-                        show_cli_help(cli)
-                        return
-                    end
-                    ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+            action = function(_options, command, args, cli)
+                if _options.help then
+                    show_cli_help(cli)
+                    return
                 end
-            }
+                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+            end
         },
         start = {
             index = 3,
@@ -123,16 +138,13 @@ AMI = {
             options = {
                 help = HELP_OPTION
             },
-            action = {
-                type = "code",
-                code = function(_options, command, args, cli)
-                    if _options.help then
-                        show_cli_help(cli)
-                        return
-                    end
-                    ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+            action = function(_options, command, args, cli)
+                if _options.help then
+                    show_cli_help(cli)
+                    return
                 end
-            }
+                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+            end
         },
         stop = {
             index = 4,
@@ -141,36 +153,33 @@ AMI = {
             options = {
                 help = HELP_OPTION
             },
-            action = {
-                type = "code",
-                code = function(_options, command, args, cli)
-                    if _options.help then
-                        show_cli_help(cli)
-                        return
-                    end
-                    ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+            action = function(_options, command, args, cli)
+                if _options.help then
+                    show_cli_help(cli)
+                    return
                 end
-            }
+                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+            end
         },
         update = {
             index = 5,
             description = "ami 'update' command",
             summary = "Updates the app or returns setup required",
-            action = {
-                type = "code",
-                code = function(_options, command, args, cli)
-                    if _options.help then
-                        show_cli_help(cli)
-                        return
-                    end
-
-                    local _available, _id, _ver = is_update_available()
-                    if _available then 
-                        ami_error("Found new version " .. _ver ..  " of " .. _id .. ", please run setup...", EXIT_SETUP_REQUIRED)
-                    end
-                    log_info("Application is up to date.")
+            action = function(_options, command, args, cli)
+                if _options.help then
+                    show_cli_help(cli)
+                    return
                 end
-            }
+
+                local _available, _id, _ver = is_update_available()
+                if _available then
+                    ami_error(
+                        "Found new version " .. _ver .. " of " .. _id .. ", please run setup...",
+                        EXIT_SETUP_REQUIRED
+                    )
+                end
+                log_info("Application is up to date.")
+            end
         },
         remove = {
             index = 6,
@@ -183,24 +192,21 @@ AMI = {
                     description = "Removes application data (usually equals app reset)"
                 }
             },
-            action = {
-                type = "code",
-                code = function(_options, command, args, cli)
-                    if _options.help then
-                        show_cli_help(cli)
-                        return
-                    end
-
-                    if _options.all then
-                        remove_app()
-                        log_success("Application removed.")
-                    else
-                        remove_app_data()
-                        log_success("Application data removed.")
-                    end
+            action = function(_options, command, args, cli)
+                if _options.help then
+                    show_cli_help(cli)
                     return
                 end
-            }
+
+                if _options.all then
+                    remove_app()
+                    log_success("Application removed.")
+                else
+                    remove_app_data()
+                    log_success("Application data removed.")
+                end
+                return
+            end
         },
         about = {
             index = 7,
@@ -209,44 +215,38 @@ AMI = {
             options = {
                 help = HELP_OPTION
             },
-            action = {
-                type = "code",
-                code = function(_options, command, args, cli)
-                    if _options.help then
-                        show_cli_help(cli)
-                        return
-                    end
-                    ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+            action = function(_options, command, args, cli)
+                if _options.help then
+                    show_cli_help(cli)
+                    return
                 end
-            }
+                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+            end
         }
     },
-    action = {
-        type = "code",
-        code = function(_options, command, args, cli)
-            if _options.help then
-                show_cli_help(cli)
-                return
-            end
-
-            if _options.version then
-                print(AMI_VERSION)
-                return
-            end
-
-            if _options.about then
-                print(AMI_ABOUT)
-                return
-            end
-
-            if command then
-                process_cli(command, args, {strict = {unknown = true}})
-            else
-                _error "No valid command provided!"
-                os.exit(2)
-            end
+    action = function(_options, command, args, cli)
+        if _options.help then
+            show_cli_help(cli)
+            return
         end
-    }
+
+        if _options.version then
+            print(AMI_VERSION)
+            return
+        end
+
+        if _options.about then
+            print(AMI_ABOUT)
+            return
+        end
+
+        if command then
+            process_cli(command, args, {strict = {unknown = true}})
+        else
+            _error "No valid command provided!"
+            os.exit(2)
+        end
+    end
 }
 
 load_sub_ami()
