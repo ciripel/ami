@@ -1,5 +1,5 @@
 REPOSITORY_URL = "https://raw.githubusercontent.com/cryon-io/air/master/ami/"
-AMI_VERSION = "0.0.9"
+AMI_VERSION = "0.1.0"
 AMI_ABOUT = "AMI - Application Management Interface cli " .. AMI_VERSION .. " (C) 2020 cryon.io"
 APP_CONFIGURATION_CANDIDATES = { "app.hjson", "app.json" } 
 APP_CONFIGURATION_PATH = nil
@@ -41,6 +41,9 @@ end
 
 function ami_assert(condition, msg, exitCode)
     if not condition then
+        if exitCode == nil then 
+            exitCode = EXIT_UNKNOWN_ERROR
+        end
         ami_error(msg, exitCode)
     end
 end

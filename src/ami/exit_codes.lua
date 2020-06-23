@@ -53,8 +53,10 @@ local _exitCodes = {
     EXIT_PKG_LAYER_EXTRACT_ERROR = 96,
     EXIT_PKG_MODEL_GENERATION_ERROR = 97,
 
-    EXIT_INVALID_SOURCES_FILE = 99
-    -- 100 - 150 reserved for unit
+    
+    EXIT_INVALID_SOURCES_FILE = 99,
+    EXIT_UNKNOWN_ERROR = 100
+    -- 500 - 999 reserved for alis-cl
 }
 
 for k,v in pairs(_exitCodes) do 
