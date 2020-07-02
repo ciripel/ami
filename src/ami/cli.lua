@@ -93,7 +93,9 @@ local function exec_native_action(action, ...)
         -- DEPRECATED
         log_warn("DEPRECATED: Code actions are deprecated and will be removed in future.")
         log_info("HINT: Consider defining action as function or usage of type 'native' pointing to lua file...")
-        return exec_code_action(action.code, optionList, command, remainingArgs, cli)
+        return exec_code_action(action.code, ...)
+    elseif type(action) == "function" then
+        action(...)
     else
         error("Unsupported action.code type!")
     end
@@ -219,8 +221,9 @@ function process_cli(cli, args)
 
     local cliId = cli.id and "(" .. cli.id .. ")" or ""
     local action = cli.action
+
     ami_assert(
-        type(action) == "table",
+        type(action) == "table" or type(action) == "function",
         "Action not specified properly or not found! " .. cliId,
         EXIT_CLI_ACTION_MISSING
     )
