@@ -93,24 +93,15 @@ local function exec_native_action(action, ...)
         -- DEPRECATED
         log_warn("DEPRECATED: Code actions are deprecated and will be removed in future.")
         log_info("HINT: Consider defining action as function or usage of type 'native' pointing to lua file...")
-        return exec_code_action(action.code, ...)
+        if type(action.code) == "string" then
+            return load(action.code)(...)
+        elseif type(action.code) == "function" then  
+            action.code(...)
+        else
+            error("Unsupported action.code type!")
+        end
     elseif type(action) == "function" then
         action(...)
-    else
-        error("Unsupported action.code type!")
-    end
-end
-
---[[
-    Executes code action - (lua code as string or function)
-    @param {string|function} code
-    @params {any{}} ... 
-]]
-local function exec_code_action(code, ...)
-    if type(code) == "string" then
-        return load(code)(...)
-    elseif type(code) == "function" then
-        return code(...)
     else
         error("Unsupported action.code type!")
     end
