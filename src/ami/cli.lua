@@ -204,10 +204,9 @@ end
 ]]
 function process_cli(cli, args)
     ami_assert(cli, "cli scheme not provided!", EXIT_CLI_SCHEME_MISSING)
-    if args == nil then
-        args = eliCli.parse_args()
-    end
-
+    
+    args = eliCli.parse_args(args)
+    
     local validate = type(cli.validate) == "function" and cli.validate or default_validate_args
 
     local cliId = cli.id and "(" .. cli.id .. ")" or ""
