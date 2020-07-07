@@ -12,7 +12,8 @@ function render_templates()
       configuration = APP.configuration,
       model = APP.model,
       ROOT_DIR = eliProc.cwd(),
-      ID = APP.id
+      ID = APP.id,
+      USER = APP.user
    }
    
    for _, entry in ipairs(_templates) do
