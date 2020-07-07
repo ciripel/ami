@@ -171,8 +171,8 @@ function parse_args(args, scheme, options)
         end
     end
 
-    _remainingArgs = {table.unpack(args, _lastIndex)}
-    return _cliOptionList, _cliCmd, _remainingArgs
+    _cliRemainingArgs = {table.unpack(args, _lastIndex)}
+    return _cliOptionList, _cliCmd, _cliRemainingArgs
 end
 
 --[[
