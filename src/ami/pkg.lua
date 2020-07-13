@@ -31,55 +31,60 @@ end
 local function _get_pkg_def(appType)
     local _pkgId = appType.id:gsub("%.", "/")
     local _defUrl = append_to_url(appType.repository, "definition", _pkgId, appType.version .. ".json")
+    local _defLocalPath = eliPath.combine(CACHE_DIR_DEFS, appType.id)
 
-    log_trace("Downloading " .. appType.id .. " definition...")
-    local _ok, _pkgDefJson = _safe_download_string(_defUrl)
-    if not _ok then
-        log_warn("Failed to download " .. appType.id .. " definition - " .. (_pkgDefJson or ""))
-        log_trace("Looking for local copy...")
-        _ok, _pkgDefJson = _safe_read_file(eliPath.combine(CACHE_DIR_DEFS, appType.id))
-        ami_assert(_ok, "Failed to download or load cached package definition... " , EXIT_PKG_INVALID_DEFINITION)
-    else
-        local _defLocalCopyPath = eliPath.combine(CACHE_DIR_DEFS, appType.id)
-        _ok = _safe_write_file(_defLocalCopyPath, _pkgDefJson)
-        if not _ok then
-            -- it is not necessary to save definition locally as we hold version in memory already
-            log_trace("Failed to create local copy of " .. appType.id .. " definition!")
-        else
-            log_trace("Local copy of " .. appType.id .. " definition saved into " .. _defLocalCopyPath)
+    if CACHE_DISABLED ~= true then 
+        local _ok, _pkgDefJson = _safe_read_file(_defLocalPath)
+        local _ok, _pkgDef = _ok and _hjson.safe_parse(_pkgDefJson)
+        if _ok and (appType.version ~= 'latest' or (type(_pkgDef.lastAmiCheck) == 'number' and _pkgDef.lastAmiCheck + 3600 > os.time())) then
+            return _pkgDef
         end
     end
 
+    local _ok, _pkgDefJson = _safe_download_string(_defUrl)
+    ami_assert(_ok, "Failed to download or load cached package definition... " , EXIT_PKG_INVALID_DEFINITION)
     local _ok, _pkgDef = _hjson.safe_parse(_pkgDefJson)
-    
-    if not _ok then
-        ami_error("Failed to parse package definition - " .. appType.id .. " - " .. _pkgDef, EXIT_PKG_INVALID_DEFINITION)
+    ami_assert(_ok, "Failed to parse package definition - " .. appType.id .. " - " .. _pkgDef, EXIT_PKG_INVALID_DEFINITION)
+
+    if CACHE_DISABLED ~= true then 
+        local _cachedDef = eliUtil.merge_tables(_pkgDef, { lastAmiCheck = os.time() })
+        local _ok, _pkgDef = _hjson.safe_stringify(_cachedDef)
+        _ok = _ok and _safe_write_file(_defLocalCopyPath, _pkgDefJson)
+        if _ok then 
+            log_trace("Local copy of " .. appType.id .. " definition saved into " .. _defLocalCopyPath)
+        end
+        
+        if not _ok then
+            -- it is not necessary to save definition locally as we hold version in memory already
+            log_trace("Failed to create local copy of " .. appType.id .. " definition!")       
+        end
     end
+
     log_trace("Successfully parsed " .. appType.id .. " definition.")
     return _pkgDef
 end
 
-local function _get_pkg(pkgDef, options)
-    if type(options) ~= "table" then
-        options = {}
-    end
-
+local function _get_pkg(pkgDef)
     local _cachedPkgPath = eliPath.combine(CACHE_DIR, pkgDef.sha256)
 
-    if options.noIntegrityChecks ~= true then
-        local res, _hash = _safe_hash_file(_cachedPkgPath, {hex = true})
-        if not res or _hash ~= pkgDef.sha256 then
-            local _ok, _error = _safe_download_file(pkgDef.source, _cachedPkgPath, {followRedirects = true})
-            ami_assert(_ok, "Failed to get package ".. (_error or "") .. " - " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
-            _ok, _hash = _safe_hash_file(_cachedPkgPath, {hex = true})
-            ami_assert(_hash == pkgDef.sha256, "Failed to verify package integrity - " .. pkgDef.sha256 .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)
-            log_trace("Integrity checks of " .. pkgDef.sha256 .. " successful.")
-        else 
-            log_trace("Using cached version of " .. pkgDef.sha256)
+    if CACHE_DISABLED ~= true then 
+        if NO_INTEGRITY_CHECKS ~= true then
+            local _ok, _hash = _safe_hash_file(_cachedPkgPath, {hex = true})
+            if _ok and _hash == pkgDef.sha256 then
+                log_trace("Using cached version of " .. pkgDef.sha256)
+                return _cachedPkgPath
+            end
+        elseif eliFs.exists(_cachedPkgPath) then
+            log_trace("Integrity checks disabled. Skipping ... ")
+            return _cachedPkgPath
         end
-    else
-        log_trace("Integrity checks disabled. Skipping ... ")
     end
+
+    local _ok, _error = _safe_download_file(pkgDef.source, _cachedPkgPath, { followRedirects = true })
+    ami_assert(_ok, "Failed to get package ".. (_error or "") .. " - " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
+    local _ok, _hash = _safe_hash_file(_cachedPkgPath, { hex = true })
+    ami_assert(_ok and _hash == pkgDef.sha256, "Failed to verify package integrity - " .. pkgDef.sha256 .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)
+    log_trace("Integrity checks of " .. pkgDef.sha256 .. " successful.")
 
     return _cachedPkgPath
 end
@@ -102,16 +107,12 @@ local function _get_pkg_specs(pkgPath)
     return _specs
 end
 
-local function _prepare_pkg(appType, options)
+local function _prepare_pkg(appType)
     if type(appType.id) ~= "string" then
         ami_error("Invalid pkg specification or definition!", EXIT_PKG_INVALID_DEFINITION)
     end
     log_debug("Preparation of " .. appType.id .. " started ...")
     _normalize_pkg_type(appType)
-
-    if type(options) ~= "table" then
-        options = {}
-    end
 
     local _pkgDef
     if type(SOURCES) == 'table' and SOURCES[appType.id] then 
@@ -128,8 +129,7 @@ local function _prepare_pkg(appType, options)
         _pkgDef = _get_pkg_def(appType)
     end
     
-    local _cachedPkgPath = _get_pkg(_pkgDef, options)
-
+    local _cachedPkgPath = _get_pkg(_pkgDef)
     local _specs = _get_pkg_specs(_cachedPkgPath)
 
     local _res = {}

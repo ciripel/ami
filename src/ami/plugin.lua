@@ -27,7 +27,7 @@ function load_plugin(name, options)
     log_trace("Plugin not cached, loading...")
 
     local _url = REPOSITORY_URL .. "plugin/" .. name .. "/" .. _version .. ".json"
-    local _defFile = eliPath.combine(PLUGIN_DIR_DEFS, _pluginId)
+    local _defFile = eliPath.combine(CACHE_PLUGIN_DIR_DEFS, _pluginId)
     local _pluginDefinitionJson = ""
     if not eliFs.exists(_defFile) or _version == "latest" then
         log_trace("Defs not found, downloading...")
@@ -45,7 +45,7 @@ function load_plugin(name, options)
     local _ok, _pluginDefinition = pcall(_parse_json, _file)
     ami_assert(_ok, _join_strings("", "Failed to parse ", _pluginId, " definition: ", _pluginDefinition), EXIT_PLUGIN_INVALID_DEFINITION)
 
-    local _path = eliPath.combine(PLUGIN_DIR_ZIPS, _pluginId)
+    local _path = eliPath.combine(CACHE_PLUGIN_DIR_ZIPS, _pluginId)
     local _downloadRequired = true
     if eliFs.exists(_path) then
         log_trace("Plugin package found, verifying...")

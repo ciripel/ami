@@ -1,5 +1,5 @@
 REPOSITORY_URL = "https://raw.githubusercontent.com/cryon-io/air/master/ami/"
-AMI_VERSION = "0.1.4"
+AMI_VERSION = "0.1.5"
 AMI_ABOUT = "AMI - Application Management Interface cli " .. AMI_VERSION .. " (C) 2020 cryon.io"
 APP_CONFIGURATION_CANDIDATES = { "app.hjson", "app.json" } 
 APP_CONFIGURATION_PATH = nil
@@ -21,17 +21,21 @@ log_success, log_trace, log_debug, log_info, log_warn, log_error =
     require "eli.util".global_log_factory("ami", "success", "trace", "debug", "info", "warn", "error")
 
 function set_cache_dir(path)
+    if path == false then 
+        CACHE_DISABLED = true
+        path = ""
+    end
     CACHE_DIR = eliPath.combine(path, ".CACHE")
     CACHE_DIR_DEFS = eliPath.combine(CACHE_DIR, "definitions")
 
     eliFs.mkdirp(CACHE_DIR_DEFS)
 
-    PLUGIN_DIR = eliPath.combine(CACHE_DIR, "plugins")
-    PLUGIN_DIR_DEFS = eliPath.combine(PLUGIN_DIR, "defs")
-    PLUGIN_DIR_ZIPS = eliPath.combine(PLUGIN_DIR, "zip")
+    CACHE_PLUGIN_DIR = eliPath.combine(CACHE_DIR, "plugins")
+    CACHE_PLUGIN_DIR_DEFS = eliPath.combine(CACHE_PLUGIN_DIR, "defs")
+    CACHE_PLUGIN_DIR_ZIPS = eliPath.combine(CACHE_PLUGIN_DIR, "zip")
 
-    eliFs.mkdirp(PLUGIN_DIR_ZIPS)
-    eliFs.mkdirp(PLUGIN_DIR_DEFS)
+    eliFs.mkdirp(CACHE_PLUGIN_DIR_ZIPS)
+    eliFs.mkdirp(CACHE_PLUGIN_DIR_DEFS)
 end
 
 function ami_error(msg, exitCode)
@@ -73,6 +77,12 @@ basicCliOptions = {
         index = 4,
         type = "string",
         description = "Path to cache directory"
+    },
+    ["no-integrity-checks"] = {
+        index = 4,
+        type = "boolean",
+        description = "Disables integrity checks",
+        hidden = true -- this is for debug purposes only, better to avoid
     },
     ["local-sources"] = {
         index = 5,
@@ -146,6 +156,10 @@ end
 if _parasedOptions["log-level"] then
     GLOBAL_LOGGER.options.level = _parasedOptions["log-level"]
     log_debug("Log level set to '" .. _parasedOptions["log-level"] .. "'.")
+end
+
+if _parasedOptions["no-integrity-checks"] then 
+    NO_INTEGRITY_CHECKS = true
 end
 
 if type(APP_CONFIGURATION_PATH) ~= 'string' then
