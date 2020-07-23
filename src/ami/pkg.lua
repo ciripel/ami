@@ -35,16 +35,18 @@ local function _get_pkg_def(appType)
 
     if CACHE_DISABLED ~= true then 
         local _ok, _pkgDefJson = _safe_read_file(_defLocalPath)
-        local _ok, _pkgDef = _ok and _hjson.safe_parse(_pkgDefJson)
-        if _ok and (appType.version ~= 'latest' or (type(_pkgDef.lastAmiCheck) == 'number' and _pkgDef.lastAmiCheck + 3600 > os.time())) then
-            return _pkgDef
+        if _ok then
+            local _ok, _pkgDef = _hjson.safe_parse(_pkgDefJson)
+            if _ok and (appType.version ~= 'latest' or (type(_pkgDef.lastAmiCheck) == 'number' and _pkgDef.lastAmiCheck + 3600 > os.time())) then
+                return _pkgDef
+            end
         end
     end
 
     local _ok, _pkgDefJson = _safe_download_string(_defUrl)
     ami_assert(_ok, "Failed to download or load cached package definition... " , EXIT_PKG_INVALID_DEFINITION)
     local _ok, _pkgDef = _hjson.safe_parse(_pkgDefJson)
-    ami_assert(_ok, "Failed to parse package definition - " .. appType.id .. " - " .. _pkgDef, EXIT_PKG_INVALID_DEFINITION)
+    ami_assert(_ok, "Failed to parse package definition - " .. appType.id .. " - " .. _defLocalPath, EXIT_PKG_INVALID_DEFINITION)
 
     if CACHE_DISABLED ~= true then 
         local _cachedDef = eliUtil.merge_tables(_pkgDef, { lastAmiCheck = os.time() })

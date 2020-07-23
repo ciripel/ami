@@ -8,29 +8,49 @@ function render_templates()
       return
    end
 
+   local _model = {}
+   -- transform model object like tables to array tables
+   for key, value in pairs(APP.model) do
+      if type(value) == "table" and not eliUtil.is_array(value) then
+         _model[key] = eliUtil.to_array(value)
+      else
+         _model[key] = value
+      end
+   end
+
+   local _configuration = {}
+   -- transform configuration object like tables to array tables
+   for key, value in pairs(APP.configuration) do
+      if type(value) == "table" and not eliUtil.is_array(value) then
+         _configuration[key] = eliUtil.to_array(value)
+      else
+         _configuration[key] = value
+      end
+   end
+
    local _vm = {
-      configuration = APP.configuration,
-      model = APP.model,
+      configuration = _configuration,
+      model = _model,
       ROOT_DIR = eliProc.cwd(),
       ID = APP.id,
       USER = APP.user
    }
-   
+
    for _, entry in ipairs(_templates) do
       if entry:type() == "file" then
          local _templatePath = entry:fullpath()
          local _file = eliPath.file(_templatePath)
          local _pre, _suf = _file:match("(.*)%.template(.*)")
          local _renderedPath = eliPath.combine(eliPath.dir(eliPath.rel(_templatePath, ".ami-templates")), _pre .. _suf)
-         
+
          log_trace("Rendering '" .. _templatePath .. "' to '" .. _renderedPath .. "'...")
 
          local _ok, _template = eliFs.safe_read_file(_templatePath)
          ami_assert(_ok, "Read failed for " .. _templatePath .. " - " .. (_template or ""), EXIT_TPL_READ_ERROR)
          local _result = _lustache:render(_template, _vm)
-         
+
          local _ok, _error = eliFs.safe_mkdirp(eliPath.dir(_renderedPath))
-         if _ok then 
+         if _ok then
             _ok, _error = eliFs.safe_write_file(_renderedPath, _result)
          end
 
