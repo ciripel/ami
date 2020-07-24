@@ -16,8 +16,8 @@
     },
     "configuration": {
         "NODE_TYPE" : "masternode",
-        "USER": "test"
-    }
+    },
+    "user": "test"
 }
 ```
 
