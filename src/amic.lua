@@ -4,7 +4,7 @@ local os = require "os"
 -- extensions
 require "ami.exit_codes"
 require "ami.cli"
-require "ami.defaults"
+require "ami.init"
 require "ami.app"
 require "ami.plugin"
 require "ami.tpl"

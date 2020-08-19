@@ -11,20 +11,18 @@ function render_templates()
    local _model = {}
    -- transform model object like tables to array tables
    for key, value in pairs(APP.model) do
+      _model[key] = value
       if type(value) == "table" and not eliUtil.is_array(value) then
-         _model[key] = eliUtil.to_array(value)
-      else
-         _model[key] = value
+         _model[key .. "__ARRAY"] = eliUtil.to_array(value)
       end
    end
 
    local _configuration = {}
    -- transform configuration object like tables to array tables
    for key, value in pairs(APP.configuration) do
+      _configuration[key] = value
       if type(value) == "table" and not eliUtil.is_array(value) then
-         _configuration[key] = eliUtil.to_array(value)
-      else
-         _configuration[key] = value
+         _configuration[key .. "__ARRAY"] = eliUtil.to_array(value)
       end
    end
 
