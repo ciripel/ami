@@ -30,7 +30,13 @@ end
 
 local function _get_pkg_def(appType)
     local _pkgId = appType.id:gsub("%.", "/")
-    local _defUrl = append_to_url(appType.repository, "definition", _pkgId, appType.version .. ".json")
+    local _defUrl = ""
+    if appType.version == "latest" then
+        _defUrl = append_to_url(appType.repository, "definition", _pkgId, appType.version .. ".json")
+    else
+        _defUrl = append_to_url(appType.repository, "definition", _pkgId, "v", appType.version .. ".json")
+    end
+
     local _defLocalPath = eliPath.combine(CACHE_DIR_DEFS, appType.id)
 
     if CACHE_DISABLED ~= true then 
@@ -92,7 +98,7 @@ local function _get_pkg(pkgDef)
 end
 
 local function _get_pkg_specs(pkgPath)
-    local _ok, _specsJson = eliZip.safe_extract_string(pkgPath, "specs.json", {flattenRootDir = true}) -- // TODO: specs not def
+    local _ok, _specsJson = eliZip.safe_extract_string(pkgPath, "specs.json", {flattenRootDir = true})
     
     ami_assert(_ok, "Failed to extract " .. pkgPath .. "", EXIT_PKG_LOAD_ERROR)
     if _specsJson == nil then 
@@ -255,6 +261,8 @@ local function _is_pkg_update_available(pkg, currentVer)
         log_trace("Static version detected, update suppressed.")
         return false
     end
+
+    pkg.version = pkg.wanted_version
 
     local _pkgDef = _get_pkg_def(pkg)
     if type(currentVer) ~= 'string' then 

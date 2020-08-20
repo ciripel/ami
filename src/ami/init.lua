@@ -1,5 +1,5 @@
 REPOSITORY_URL = "https://raw.githubusercontent.com/cryon-io/air/master/ami/"
-AMI_VERSION = "0.1.7"
+AMI_VERSION = "0.1.8"
 AMI_ABOUT = "AMI - Application Management Interface - cli " .. AMI_VERSION .. " (C) 2020 cryon.io"
 APP_CONFIGURATION_CANDIDATES = { "app.hjson", "app.json" } 
 APP_CONFIGURATION_PATH = nil
@@ -21,7 +21,7 @@ log_success, log_trace, log_debug, log_info, log_warn, log_error =
     require "eli.util".global_log_factory("ami", "success", "trace", "debug", "info", "warn", "error")
 
 function set_cache_dir(path)
-    if path == false then 
+    if path == "false" then
         CACHE_DISABLED = true
         path = ""
     end
