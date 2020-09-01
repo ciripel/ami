@@ -3,6 +3,7 @@ AMI_VERSION = "0.1.8"
 AMI_ABOUT = "AMI - Application Management Interface - cli " .. AMI_VERSION .. " (C) 2020 cryon.io"
 APP_CONFIGURATION_CANDIDATES = { "app.hjson", "app.json" } 
 APP_CONFIGURATION_PATH = nil
+AMI_CACHE_TIMEOUT = 86400
 
 eliPath = require "eli.path"
 eliFs = require "eli.fs"
@@ -24,17 +25,24 @@ function set_cache_dir(path)
     if path == "false" then
         CACHE_DISABLED = true
         path = ""
+
     end
-    CACHE_DIR = eliPath.combine(path, ".CACHE")
-    CACHE_DIR_DEFS = eliPath.combine(CACHE_DIR, "definitions")
+    if not eliPath.isabs(path) then 
+        path = eliPath.combine(eliProc.cwd(), path)
+    end
+    
+    CACHE_DIR = path
+    CACHE_DIR_DEFS = eliPath.combine(CACHE_DIR, "definition")
+    CACHE_DIR_ARCHIVES = eliPath.combine(CACHE_DIR, "archive")
 
     eliFs.mkdirp(CACHE_DIR_DEFS)
+    eliFs.mkdirp(CACHE_DIR_ARCHIVES)
 
-    CACHE_PLUGIN_DIR = eliPath.combine(CACHE_DIR, "plugins")
-    CACHE_PLUGIN_DIR_DEFS = eliPath.combine(CACHE_PLUGIN_DIR, "defs")
-    CACHE_PLUGIN_DIR_ZIPS = eliPath.combine(CACHE_PLUGIN_DIR, "zip")
+    CACHE_PLUGIN_DIR = eliPath.combine(CACHE_DIR, "plugin")
+    CACHE_PLUGIN_DIR_DEFS = eliPath.combine(CACHE_PLUGIN_DIR, "definition")
+    CACHE_PLUGIN_DIR_ARCHIVES = eliPath.combine(CACHE_PLUGIN_DIR, "archive")
 
-    eliFs.mkdirp(CACHE_PLUGIN_DIR_ZIPS)
+    eliFs.mkdirp(CACHE_PLUGIN_DIR_ARCHIVES)
     eliFs.mkdirp(CACHE_PLUGIN_DIR_DEFS)
 end
 
@@ -76,28 +84,33 @@ basicCliOptions = {
     ["cache"] = {
         index = 4,
         type = "string",
-        description = "Path to cache directory"
+        description = "Path to cache directory or false for disable"
+    },
+    ["cache-timeout"] = {
+        index = 5,
+        type = "number",
+        description = "Invalidation timeout of cached packages, definitions and plugins"
     },
     ["no-integrity-checks"] = {
-        index = 4,
+        index = 6,
         type = "boolean",
         description = "Disables integrity checks",
         hidden = true -- this is for debug purposes only, better to avoid
     },
     ["local-sources"] = {
-        index = 5,
+        index = 7,
         aliases = {"ls"},
         type = "string",
         description = "Path to h/json file with local sources definitions"
     },
     version = {
-        index = 6,
+        index = 8,
         aliases = {"v"},
         type = "boolean",
         description = "Prints AMI version"
     },
     about = {
-        index = 6,
+        index = 9,
         type = "boolean",
         description = "Prints AMI about"
     },
@@ -143,6 +156,10 @@ end
 
 if _parasedOptions.cache then
     set_cache_dir(_parasedOptions.cache)
+end
+
+if _parasedOptions["cache-timeout"] then
+    AMI_CACHE_TIMEOUT = _parasedOptions["cache-timeout"]
 end
 
 if _parasedOptions["output-format"] then

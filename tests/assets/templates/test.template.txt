@@ -1,0 +1,7 @@
+{{#configuration.TEST_CONFIGURATION__ARRAY}}
+{{{key}}}={{{value}}}
+{{/configuration.TEST_CONFIGURATION__ARRAY}}
+
+{{#configuration.TEST_CONFIGURATION}}
+version={{{version}}}
+{{/configuration.TEST_CONFIGURATION}}

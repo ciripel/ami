@@ -1,0 +1,4 @@
+*
+!.gitignore
+!.ami-templates
+!.ami-templates/*

@@ -5,3 +5,7 @@ src/app/*
 bin/*
 !bin/.gitkeep
 docs
+tests/tmp/*
+!tests/tmp/.gitkeep
+tests/cache/1/*
+!tests/cache/1/.gitkeep

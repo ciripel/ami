@@ -1,0 +1,15 @@
+{{#configuration.TEST_CONFIGURATION__ARRAY}}
+[key]{{{key}}}=[value]{{{value}}}
+{{/configuration.TEST_CONFIGURATION__ARRAY}}
+
+{{#configuration.TEST_CONFIGURATION}}
+version={{{version}}}
+test_bool={{{test_bool}}}
+{{/configuration.TEST_CONFIGURATION}}
+
+id={{{ID}}}
+user={{{USER}}}
+
+{{#model}}
+version={{{version}}}
+{{/model}}
