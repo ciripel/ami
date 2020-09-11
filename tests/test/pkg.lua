@@ -178,6 +178,14 @@ _test["prepare pkg no integrity checks"] = function()
     _test.assert(_verTree.id == "test.app")
 end
 
+_test["prepare pkg from alternative channel"] = function()
+    _test.assert(true) -- // TODO
+end
+
+_test["prepare pkg from non existing alternative channel"] = function()
+    _test.assert(true) -- // TODO
+end
+
 _test["unpack layers"] = function()
     set_cache_dir("tests/cache/2")
     local _pkgType = {

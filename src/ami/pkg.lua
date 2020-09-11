@@ -7,6 +7,8 @@ local _safe_hash_file, _safe_read_file, _safe_write_file =
 
 local _hjson = eliUtil.generate_safe_functions(require "hjson")
 
+-- TODO: channels
+
 local function _normalize_pkg_type(pkgType)
     if pkgType.version == nil then
         pkgType.version = "latest"
@@ -17,16 +19,14 @@ local function _normalize_pkg_type(pkgType)
     end
 end
 
-local function _get_pkg_def(appType)
+local function _download_pkg_def(appType, channel)
     local _pkgId = appType.id:gsub("%.", "/")
-    local _defUrl = ""
-    if appType.version == "latest" then
-        _defUrl = append_to_url(appType.repository, "definition", _pkgId, appType.version .. ".json")
-    else
-        _defUrl = append_to_url(appType.repository, "definition", _pkgId, "v", appType.version .. ".json")
-    end
 
-    local _defLocalPath = eliPath.combine(CACHE_DIR_DEFS, appType.id .. "@" .. appType.version)
+    local version = appType.version == "latest" and appType.version or "v/" .. appType.version
+    local _channel = type(channel) == "string" and channel ~= "" and "_" .. channel or ""
+
+    local _defUrl = append_to_url(appType.repository, "definition", _pkgId, version .. _channel .. ".json") -- e.g.: /test/app/latest_beta.json 
+    local _defLocalPath = eliPath.combine(CACHE_DIR_DEFS, appType.id .. "@" .. appType.version .. _channel) -- e.g.: test.app@latest_beta
 
     if CACHE_DISABLED ~= true then
         local _ok, _pkgDefJson = _safe_read_file(_defLocalPath)
@@ -37,19 +37,20 @@ local function _get_pkg_def(appType)
                     (appType.version ~= "latest" or
                         (type(_pkgDef.lastAmiCheck) == "number" and _pkgDef.lastAmiCheck + AMI_CACHE_TIMEOUT > os.time()))
              then
-                return _pkgDef
+                return true, _pkgDef
             end
         end
     end
 
     local _ok, _pkgDefJson = _safe_download_string(_defUrl)
-    ami_assert(_ok, "Failed to download package definition... ", EXIT_PKG_INVALID_DEFINITION)
+    if not _ok then 
+        return _ok, "Failed to download package definition... ", EXIT_PKG_INVALID_DEFINITION
+    end
+
     local _ok, _pkgDef = _hjson.safe_parse(_pkgDefJson)
-    ami_assert(
-        _ok,
-        "Failed to parse package definition - " .. appType.id .. " - " .. _defLocalPath,
-        EXIT_PKG_INVALID_DEFINITION
-    )
+    if not _ok then 
+        return _ok, "Failed to parse package definition - " .. appType.id .. " - " .. _defLocalPath, EXIT_PKG_INVALID_DEFINITION
+    end
 
     if CACHE_DISABLED ~= true then
         local _cachedDef = eliUtil.merge_tables(_pkgDef, {lastAmiCheck = os.time()})
@@ -61,6 +62,20 @@ local function _get_pkg_def(appType)
             -- it is not necessary to save definition locally as we hold version in memory already
             log_trace("Failed to create local copy of " .. appType.id .. " definition!")
         end
+    end
+
+    return true, _pkgDef
+end
+
+local function _get_pkg_def(appType)
+    -- try to download based on app channel
+    local _ok, _pkgDef = _download_pkg_def(appType, appType.channel)
+    -- if we failed to download channel and we werent downloading default already, try download default
+    if not _ok and type(appType.channel) == "string" and appType.channel ~= "" then
+        log_trace("Failed to obtain package definition from channel " .. appType.channel .. "! Retrying with default...")
+        local _ok, _pkgDefOrError, _exitCode = _download_pkg_def(appType, "")
+        ami_assert(_ok, _pkgDefOrError, _exitCode)
+        _pkgDef = _pkgDefOrError
     end
 
     log_trace("Successfully parsed " .. appType.id .. " definition.")
