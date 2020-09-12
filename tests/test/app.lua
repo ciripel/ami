@@ -134,8 +134,40 @@ _test["remove app"] = function()
 end
 
 _test["is update available"] = function()
-    -- // TODO
-    _test.assert(true)
+    set_cache_dir("tests/cache/2")
+    APP = {}
+    APP_CONFIGURATION_PATH = "app.json"
+    local _testDir = "tests/app/app_update/1"
+
+    eliProc.chdir(_testDir)
+    local _ok = pcall(load_app_details)
+    _test.assert(is_update_available())
+    eliProc.chdir(_defaultCwd)
+end
+
+_test["is update available (updated already)"] = function()
+    set_cache_dir("tests/cache/2")
+    APP = {}
+    APP_CONFIGURATION_PATH = "app.json"
+    local _testDir = "tests/app/app_update/2"
+
+    eliProc.chdir(_testDir)
+    local _ok = pcall(load_app_details)
+    _test.assert(not is_update_available())
+    eliProc.chdir(_defaultCwd)
+end
+
+_test["is update available alternative channel"] = function()
+    set_cache_dir("tests/cache/2")
+    APP = {}
+    APP_CONFIGURATION_PATH = "app.json"
+    local _testDir = "tests/app/app_update/3"
+
+    eliProc.chdir(_testDir)
+    local _ok = pcall(load_app_details)
+    local _isAvailable, _pkgId, _version = is_update_available()
+    _test.assert(_isAvailable and _version == "0.0.2-beta")
+    eliProc.chdir(_defaultCwd)
 end
 
 if not TEST then

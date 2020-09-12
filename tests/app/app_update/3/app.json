@@ -1,0 +1,15 @@
+{
+    "id": "test1",
+    "type": {
+        "id": "test.app",
+        "channel": "beta"
+    },
+    "configuration": {
+        "TEST_CONFIGURATION": {
+            "key": "value",
+            "bool": true,
+            "bool2": false,
+            "number": 15
+        }
+    }
+}
