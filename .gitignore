@@ -9,3 +9,5 @@ tests/tmp/*
 !tests/tmp/.gitkeep
 tests/cache/1/*
 !tests/cache/1/.gitkeep
+tests/cache/4/*
+!tests/cache/4/.gitkeep

@@ -75,7 +75,7 @@ function is_update_available()
         return _amiPkg.is_pkg_update_available(APP.type, _specs.version)
     end
     log_trace("Using .version-tree.json for update availability check.")
-    return _amiPkg.is_pkg_update_available(_verTree, _verTree.version)
+    return _amiPkg.is_pkg_update_available(_verTree)
 end
 
 function get_app_version()

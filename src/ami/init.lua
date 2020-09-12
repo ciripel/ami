@@ -13,6 +13,7 @@ eliNet = require "eli.net"
 eliZip = require "eli.zip"
 eliUtil = require "eli.util"
 eliEnv = require "eli.env"
+eliVer = require "eli.ver"
 exString = require "eli.extensions.string"
 
 local _hjson = require "hjson"

@@ -23,7 +23,7 @@ local function _download_pkg_def(appType, channel)
     local _pkgId = appType.id:gsub("%.", "/")
 
     local version = appType.version == "latest" and appType.version or "v/" .. appType.version
-    local _channel = type(channel) == "string" and channel ~= "" and "_" .. channel or ""
+    local _channel = type(channel) == "string" and channel ~= "" and "-" .. channel or ""
 
     local _defUrl = append_to_url(appType.repository, "definition", _pkgId, version .. _channel .. ".json") -- e.g.: /test/app/latest_beta.json 
     local _defLocalPath = eliPath.combine(CACHE_DIR_DEFS, appType.id .. "@" .. appType.version .. _channel) -- e.g.: test.app@latest_beta
@@ -163,6 +163,7 @@ local function _prepare_pkg(appType)
         id = appType.id,
         version = _pkgDef.version,
         wanted_version = appType.version,
+        channel = appType.channel,
         repository = appType.repository,
         dependencies = {}
     }
@@ -307,7 +308,7 @@ local function _is_pkg_update_available(pkg, currentVer)
         return true, pkg.id, _pkgDef.version
     end
 
-    if eliUtil.compare_version(_pkgDef.version, currentVer) > 0 then
+    if eliVer.compare_version(_pkgDef.version, currentVer) > 0 then
         log_trace("New version available...")
         return true, pkg.id, _pkgDef.version
     end

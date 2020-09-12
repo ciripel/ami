@@ -123,14 +123,19 @@ _test["remove app"] = function()
     _test.assert(_ok)
     local _ok, _entries = eliFs.safe_read_dir(".", {recurse = true})
     local _nonDataEntries = {}
-    for _, v in ipairs(_entries) do 
-        if type(v) == "string" and not v:match("data/.*") then 
+    for _, v in ipairs(_entries) do
+        if type(v) == "string" and not v:match("data/.*") then
             table.insert(_nonDataEntries, v)
         end
     end
     _test.assert(_ok and #_entries == 3)
 
     eliProc.chdir(_defaultCwd)
+end
+
+_test["is update available"] = function()
+    -- // TODO
+    _test.assert(true)
 end
 
 if not TEST then

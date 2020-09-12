@@ -176,14 +176,32 @@ _test["prepare pkg no integrity checks"] = function()
     _test.assert(_verTree.dependencies[1].id == "test.base")
     _test.assert(_verTree.dependencies[2].id == "test.base2")
     _test.assert(_verTree.id == "test.app")
+    NO_INTEGRITY_CHECKS = false
 end
 
 _test["prepare pkg from alternative channel"] = function()
-    _test.assert(true) -- // TODO
+    set_cache_dir("tests/cache/4")
+
+    local _pkgType = {
+        id = "test.app",
+        channel = "beta"
+    }
+    _amiPkg.normalize_pkg_type(_pkgType)
+    local _result, _fileList, _modelInfo, _verTree = pcall(_amiPkg.prepare_pkg, _pkgType)
+    _test.assert(_verTree.version:match(".+-beta"))
 end
 
+
 _test["prepare pkg from non existing alternative channel"] = function()
-    _test.assert(true) -- // TODO
+    set_cache_dir("tests/cache/4")
+
+    local _pkgType = {
+        id = "test.app",
+        channel = "alpha"
+    }
+    _amiPkg.normalize_pkg_type(_pkgType)
+    local _result, _fileList, _modelInfo, _verTree = pcall(_amiPkg.prepare_pkg, _pkgType)
+    _test.assert(not _verTree.version:match(".+-alpha"))
 end
 
 _test["unpack layers"] = function()
@@ -244,6 +262,21 @@ _test["is update available"] = function()
     }
     local isAvailable, id, version = _amiPkg.is_pkg_update_available(_pkg, "0.0.0")
     _test.assert(isAvailable)
+    local isAvailable, id, version = _amiPkg.is_pkg_update_available(_pkg, "100.0.0")
+    _test.assert(not isAvailable)
+end
+
+
+_test["is update available from alternative channel"] = function()
+    local _pkg = {
+        id = "test.app",
+        wanted_version = "latest",
+        channel = "beta"
+    }
+    local isAvailable, id, version = _amiPkg.is_pkg_update_available(_pkg, "0.0.0")
+    _test.assert(isAvailable)
+    local isAvailable, id, version = _amiPkg.is_pkg_update_available(_pkg, "0.0.2-beta")
+    _test.assert(not isAvailable)
     local isAvailable, id, version = _amiPkg.is_pkg_update_available(_pkg, "100.0.0")
     _test.assert(not isAvailable)
 end

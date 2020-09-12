@@ -21,8 +21,8 @@ local function parse_value(value, _type)
             end
         end,
         number = function(v)
-            local _res, _n = pcall(tonumber, v)
-            if _res then
+            local _n = tonumber(v)
+            if _n ~= nil then
                 return _n
             else
                 ami_error("Invalid value type! Number expected, got: " .. value .. "!", EXIT_CLI_INVALID_VALUE)
@@ -39,8 +39,8 @@ local function parse_value(value, _type)
             elseif v == "null" or v == "NULL" or v == "nil" then
                 return nil
             else
-                local _res, _n = pcall(tonumber, value)
-                if _res then
+                local _n = tonumber(v)
+                if _n ~= nil then
                     return _n
                 end
             end
@@ -95,7 +95,7 @@ local function exec_native_action(action, ...)
         log_info("HINT: Consider defining action as function or usage of type 'native' pointing to lua file...")
         if type(action.code) == "string" then
             return load(action.code)(...)
-        elseif type(action.code) == "function" then  
+        elseif type(action.code) == "function" then
             action.code(...)
         else
             error("Unsupported action.code type!")
@@ -204,9 +204,9 @@ end
 ]]
 function process_cli(cli, args)
     ami_assert(cli, "cli scheme not provided!", EXIT_CLI_SCHEME_MISSING)
-    
+
     args = eliCli.parse_args(args)
-    
+
     local validate = type(cli.validate) == "function" and cli.validate or default_validate_args
 
     local cliId = cli.id and "(" .. cli.id .. ")" or ""
