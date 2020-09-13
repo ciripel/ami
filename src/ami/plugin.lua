@@ -89,7 +89,7 @@ function load_plugin(name, options)
     if eliFs.exists(_cachedArchivePath) then
         log_trace("Plugin package found, verifying...")
         local _ok, _hash = _safe_hash_file(_cachedArchivePath, {hex = true})
-        _downloadRequired = _hash:lower() ~= _pluginDefinition.sha256:lower()
+        _downloadRequired = not _ok or _hash:lower() ~= _pluginDefinition.sha256:lower()
         log_trace(
             not _downloadRequired and "Plugin package verified..." or
                 "Plugin package verification failed, downloading... "
@@ -138,8 +138,8 @@ function load_plugin(name, options)
     end
 
     local _originalCwd = eliProc.cwd()
-    
-    eliProc.safe_chdir(_loadDir)    
+
+    eliProc.safe_chdir(_loadDir)
     local _ok, _result = pcall(dofile, _entrypoint)
     eliFs.safe_remove(_loadDir, { recurse = true })
     ami_assert(
@@ -147,7 +147,7 @@ function load_plugin(name, options)
         "Failed to require plugin: " .. _pluginId .. " - " .. (type(_result) == "string" and _result or ""),
         EXIT_PLUGIN_LOAD_ERROR
     )
-    local _ok, _err = eliProc.safe_chdir(_originalCwd)
+    local _ok = eliProc.safe_chdir(_originalCwd)
     ami_assert(_ok, "Failed to chdir after plugin load", EXIT_PLUGIN_LOAD_ERROR)
     PLUGIN_IN_MEM_CACHE[_pluginId] = _result
     return _result

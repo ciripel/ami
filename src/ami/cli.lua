@@ -1,8 +1,10 @@
 local _eliUtil = require "eli.util"
 local keys = _eliUtil.keys
+local _newLine = require "eli.path".platform == "unix" and "\n" or "\r\n"
+
 --[[
     Parses value into required type if possible.
-    @param {any} value 
+    @param {any} value
     @param {string} _type
 ]]
 local function parse_value(value, _type)
@@ -58,33 +60,25 @@ end
     @param {String{}} args
     @param {boolean} readOutput
 ]]
-local function exec_external_action(exec, args, readOutput)
-    local execArgs = ""
+local function exec_external_action(exec, args, injectArgs)
+    local _args = {}
+    if type(injectArgs) == "table" then
+        for _, v in ipairs(injectArgs) do
+            if type(v) == "string" then
+                table.insert(_args, v)
+            end
+        end
+    end
     for _, v in ipairs(args) do
-        execArgs = execArgs .. ' "' .. v:gsub("\\", "\\\\"):gsub('"', '\\"') .. '"' -- add qouted string
+        table.insert(_args, v.value)
     end
-    -- // TODO: for EPROC use 2 way pipe
-    if readOutput then
-        -- we have to return stdout and stderr
-        local stderrFile = os.tmpname()
-        local stdoutStream = io.popen(action.exec .. " " .. execArgs .. " 2>" .. stderrFile)
-        local stdout = stdoutStream:read "a"
-        -- lua does not support two way pipe by default so to keep stderr separeted it is
-        -- redirected and read from temp file
-        local stderrStream = io.popen(stderrFile)
-        local stderr = stderrStream:read "a"
-        stderrStream:close()
-        return stdoutStream:close(), stdout, stderr
-    else
-        -- we are interested only in exit code
-        return os.execute(action.exec .. " " .. execArgs)
-    end
+    return eliProc.execute(exec, _args, {wait = true, stdio = false})
 end
 
 --[[
     Executes native action - (lua file module)
     @param {string} modulePath
-    @params {any{}} ... 
+    @params {any{}} ...
 ]]
 local function exec_native_action(action, ...)
     if type(action) == "string" then
@@ -107,7 +101,7 @@ local function exec_native_action(action, ...)
     end
 end
 
---[[ //TODO: update
+--[[
     Generates optionList, parameterValues, command from args.
     @param {string{}} args
     @param {table{}} options
@@ -130,7 +124,7 @@ function parse_args(args, scheme, options)
         for k, v in pairs(t) do
             local _def = _eliUtil.merge_tables({id = k}, v)
             if type(v.aliases) == "table" then
-                for j, a in ipairs(v.aliases) do
+                for _, a in ipairs(v.aliases) do
                     _result[a] = _def
                 end
             end
@@ -143,7 +137,6 @@ function parse_args(args, scheme, options)
     local _cliCmdMap = _to_map(_cliCmds)
 
     local _cliOptionList = {}
-    local _cliRemainingArgs = {}
     local _cliCmd = nil
 
     local _lastIndex = 0
@@ -151,27 +144,19 @@ function parse_args(args, scheme, options)
         local _arg = args[i]
         if _arg.type == "option" then
             local _cliOptionDef = _cliOptionsMap[_arg.id]
-            ami_assert(
-                type(_cliOptionDef) == "table",
-                "Unknown option - '" .. _arg.arg .. "'!",
-                EXIT_CLI_OPTION_UNKNOWN
-            )
+            ami_assert(type(_cliOptionDef) == "table", "Unknown option - '" .. _arg.arg .. "'!", EXIT_CLI_OPTION_UNKNOWN)
             _cliOptionList[_cliOptionDef.id] = parse_value(_arg.value, _cliOptionDef.type)
         else
             if not options.ignoreCommands then
                 _cliCmd = _cliCmdMap[_arg.arg]
-                ami_assert(
-                    type(_cliCmd) == "table",
-                    "Unknown command '" .. (_arg.arg or "") .. "'!",
-                    EXIT_CLI_CMD_UNKNOWN
-                )
+                ami_assert(type(_cliCmd) == "table", "Unknown command '" .. (_arg.arg or "") .. "'!", EXIT_CLI_CMD_UNKNOWN)
                 _lastIndex = i + 1
             end
             break
         end
     end
 
-    _cliRemainingArgs = {table.unpack(args, _lastIndex)}
+    local _cliRemainingArgs = {table.unpack(args, _lastIndex)}
     return _cliOptionList, _cliCmd, _cliRemainingArgs
 end
 
@@ -180,7 +165,7 @@ end
 ]]
 local function default_validate_args(cli, optionList, command)
     local options = type(cli.options) == "table" and cli.options or {}
-    local commands = type(cli.commands) == "table" and cli.commands or {}
+    --local commands = type(cli.commands) == "table" and cli.commands or {}
 
     local _error = "Command not specified!"
     if cli.commandRequired and not command then
@@ -213,13 +198,14 @@ function process_cli(cli, args)
     local action = cli.action
 
     ami_assert(
-        type(action) == "table" or type(action) == "function",
+        type(action) == "table" or type(action) == "function" or type(action) == "string",
         "Action not specified properly or not found! " .. cliId,
         EXIT_CLI_ACTION_MISSING
     )
 
-    if type(action) == "table" and action.type == "external" then
-        return exec_external_action(action.exec, args, action.readOutput)
+    if cli.type == "external" then
+        ami_assert(type(action) == "string", "Action has to be string specifying path to external cli", EXIT_CLI_INVALID_DEFINITION)
+        return exec_external_action(action, args, cli.injectArgs)
     end
 
     local optionList, command, remainingArgs = parse_args(args, cli)
@@ -236,7 +222,6 @@ function process_cli(cli, args)
     exec_native_action(action, optionList, command, remainingArgs, cli)
 end
 
--- //TODO: handle usage generation for parent commands
 local function generate_usage(cli, includeOptionsInUsage)
     local hasCommands = cli.commands and #keys(cli.commands)
     local hasOptions = cli.options and #keys(cli.options)
@@ -252,10 +237,10 @@ local function generate_usage(cli, includeOptionsInUsage)
 
     if hasOptions and includeOptionsInUsage then
         for k, v in pairs(cli.options) do
-            if v.aliases and v.aliases[1] and not v.hidden then
+            if not v.hidden then
                 local _begin = v.required and "" or optionalBegin
                 local _end = v.required and "" or optionalEnd
-                local optionAlias = v.aliases[1]
+                local optionAlias = v.aliases and v.aliases[1] or k
                 if #optionAlias == 1 then
                     optionAlias = "-" .. optionAlias
                 else
@@ -361,13 +346,13 @@ local function generate_help_message(cli)
             leftLength = #row.left
         end
     end
-    local newLine = eliPath.platform == "unix" and "\n" or "\r\n"
+
     local msg = ""
     for _, row in ipairs(rows) do
         if #row.left == 0 then
-            msg = msg .. newLine
+            msg = msg .. _newLine
         else
-            msg = msg .. row.left .. string.rep(" ", leftLength - #row.left) .. "\t\t" .. row.description .. newLine
+            msg = msg .. row.left .. string.rep(" ", leftLength - #row.left) .. "\t\t" .. row.description .. _newLine
         end
     end
     return msg
@@ -377,14 +362,24 @@ end
     Shows cli help
 ]]
 function show_cli_help(cli, options)
-    local title = options and options.title or cli.title
-    local description = options and options.description or cli.description
-    local includeOptionsInUsage = options and options.includeOptionsInUsage or cli.includeOptionsInUsage
-    local printUsage = options and options.printUsage
-    local footer = options and options.footer
+    if type(options) ~= "table" then
+        options = {}
+    end
+    local title = options.title or cli.title
+    local description = options.description or cli.description
+    local _summary = options.summary or cli.summary
+
+    local includeOptionsInUsage = options.includeOptionsInUsage or cli.includeOptionsInUsage
+    if includeOptionsInUsage == nil then
+        includeOptionsInUsage = true
+    end
+
+    local printUsage = options.printUsage
     if printUsage == nil then
         printUsage = true
     end
+
+    local footer = options.footer
 
     if type(cli.help_message) == "function" then
         print(cli.help_message(cli))
@@ -395,19 +390,22 @@ function show_cli_help(cli, options)
             print(require "hjson".stringify(cli.commands, {invalidObjectsAsType = true, indent = false}))
         else
             -- collect and print help
-            if title then
-                print(title)
-                print()
+            if type(title) == "string" then
+                print(title .. _newLine)
             end
-            if description then
-                print(description)
-                print()
+            if type(description) == "string" then
+                print(description .. _newLine)
+            end
+            if type(_summary) == "string" then
+                print("- " .. _summary .. _newLine)
             end
             if printUsage then
-                print(generate_usage(cli, includeOptionsInUsage))
-                print()
+                print(generate_usage(cli, includeOptionsInUsage) .. _newLine)
             end
             print(generate_help_message(cli))
+            if type(footer) == "string" then
+                print(footer)
+            end
         end
     end
 end

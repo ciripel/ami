@@ -2,7 +2,7 @@ local hjson = require "hjson"
 local _amiPkg = require "ami.pkg"
 
 local function _inject_mdl()
-    _path = "model.lua"
+    local _path = "model.lua"
     if eliFs.exists(_path) then
         local _ok, _error = pcall(dofile, "model.lua")
         if not _ok then
@@ -95,12 +95,12 @@ function get_app_version()
 end
 
 function remove_app_data()
-    local _ok, _paths = eliFs.safe_remove("data", {recurse = true, contentOnly = true})
+    local _ok = eliFs.safe_remove("data", {recurse = true, contentOnly = true})
     ami_assert(_ok, "Failed to remove app data - " .. tostring(_error) .. "!", EXIT_RM_DATA_ERROR)
 end
 
 local _protectedFiles = {}
-for i, configCandidate in ipairs(APP_CONFIGURATION_CANDIDATES) do
+for _, configCandidate in ipairs(APP_CONFIGURATION_CANDIDATES) do
     _protectedFiles[configCandidate] = true
 end
 
@@ -112,7 +112,7 @@ function remove_app()
 
         if not _protectedFiles[eliPath.file(_file)] then
             local _ok, _error = eliFs.safe_remove(_file)
-            ami_assert("Failed to remove '" .. _file .. "' - " .. tostring(_error) .. "!", EXIT_RM_ERROR)
+            ami_assert(_ok, "Failed to remove '" .. _file .. "' - " .. tostring(_error) .. "!", EXIT_RM_ERROR)
         end
     end
 end

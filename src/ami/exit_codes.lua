@@ -24,14 +24,14 @@ local _exitCodes = {
     EXIT_APP_INTERNAL_ERROR = 29,
     EXIT_APP_UPDATE_ERROR = 30,
 
-    
     EXIT_CLI_SCHEME_MISSING = 35,
     EXIT_CLI_ACTION_MISSING = 36,
     EXIT_CLI_ARG_VALIDATION_ERROR = 37,
     EXIT_CLI_INVALID_VALUE = 38,
+    EXIT_CLI_INVALID_DEFINITION = 39,
 
     EXIT_CLI_CMD_UNKNOWN = 40,
-    EXIT_CLI_OPTION_UNKNOWN = 41, 
+    EXIT_CLI_OPTION_UNKNOWN = 41,
 
     EXIT_RM_ERROR = 51,
     EXIT_RM_DATA_ERROR = 52,
@@ -54,14 +54,13 @@ local _exitCodes = {
     EXIT_PKG_LAYER_EXTRACT_ERROR = 96,
     EXIT_PKG_MODEL_GENERATION_ERROR = 97,
 
-    
     EXIT_INVALID_SOURCES_FILE = 99,
     EXIT_UNKNOWN_ERROR = 100
     -- 500 - 999 reserved for alis-cl
 }
 
-for k,v in pairs(_exitCodes) do 
-    _G[k] = v 
+for k,v in pairs(_exitCodes) do
+    _G[k] = v
 end
 
 return _exitCodes

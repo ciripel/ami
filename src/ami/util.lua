@@ -9,7 +9,7 @@ function append_to_url(p, ...)
     return p
 end
 
-function cleanup_pkg_cache() 
+function cleanup_pkg_cache()
     eliFs.safe_remove(CACHE_DIR_ARCHIVES, { recurse = true, contentOnly = true })
     eliFs.safe_remove(CACHE_DIR_DEFS, { recurse = true, contentOnly = true })
 end

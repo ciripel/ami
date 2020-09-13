@@ -1,7 +1,7 @@
 REPOSITORY_URL = "https://raw.githubusercontent.com/cryon-io/air/master/ami/"
 AMI_VERSION = "0.2.0"
 AMI_ABOUT = "AMI - Application Management Interface - cli " .. AMI_VERSION .. " (C) 2020 cryon.io"
-APP_CONFIGURATION_CANDIDATES = { "app.hjson", "app.json" } 
+APP_CONFIGURATION_CANDIDATES = {"app.hjson", "app.json"}
 APP_CONFIGURATION_PATH = nil
 AMI_CACHE_TIMEOUT = 86400
 
@@ -26,12 +26,11 @@ function set_cache_dir(path)
     if path == "false" then
         CACHE_DISABLED = true
         path = ""
-
     end
-    if not eliPath.isabs(path) then 
+    if not eliPath.isabs(path) then
         path = eliPath.combine(eliProc.cwd(), path)
     end
-    
+
     CACHE_DIR = path
     CACHE_DIR_DEFS = eliPath.combine(CACHE_DIR, "definition")
     CACHE_DIR_ARCHIVES = eliPath.combine(CACHE_DIR, "archive")
@@ -54,7 +53,7 @@ end
 
 function ami_assert(condition, msg, exitCode)
     if not condition then
-        if exitCode == nil then 
+        if exitCode == nil then
             exitCode = EXIT_UNKNOWN_ERROR
         end
         ami_error(msg, exitCode)
@@ -122,17 +121,13 @@ basicCliOptions = {
     }
 }
 
-local _parasedOptions = parse_args(_args, {options = basicCliOptions}, {strict = false, ignoreCommands = true})
+local _parasedOptions = parse_args(arg, {options = basicCliOptions}, {strict = false, ignoreCommands = true})
 
 if _parasedOptions["local-sources"] then
     local _ok, _localPkgsFile = eliFs.safe_read_file(_parasedOptions["local-sources"])
     ami_assert(_ok, "Failed to read local sources file " .. _parasedOptions["local-sources"], EXIT_INVALID_SOURCES_FILE)
     local _ok, _sources = pcall(_hjson.parse, _localPkgsFile)
-    ami_assert(
-        _ok,
-        "Failed to parse local sources file " .. _parasedOptions["local-sources"],
-        EXIT_INVALID_SOURCES_FILE
-    )
+    ami_assert(_ok, "Failed to parse local sources file " .. _parasedOptions["local-sources"], EXIT_INVALID_SOURCES_FILE)
     SOURCES = _sources
 end
 
@@ -148,8 +143,8 @@ if _parasedOptions.path then
     end
 end
 
-for i, configCandidate in ipairs(APP_CONFIGURATION_CANDIDATES) do 
-    if eliFs.exists(configCandidate) then 
+for _, configCandidate in ipairs(APP_CONFIGURATION_CANDIDATES) do
+    if eliFs.exists(configCandidate) then
         APP_CONFIGURATION_PATH = configCandidate
         break
     end
@@ -176,11 +171,11 @@ if _parasedOptions["log-level"] then
     log_debug("Log level set to '" .. _parasedOptions["log-level"] .. "'.")
 end
 
-if _parasedOptions["no-integrity-checks"] then 
+if _parasedOptions["no-integrity-checks"] then
     NO_INTEGRITY_CHECKS = true
 end
 
-if type(APP_CONFIGURATION_PATH) ~= 'string' then
+if type(APP_CONFIGURATION_PATH) ~= "string" then
     -- we are working without app configuration, expose default options
     if _parasedOptions.version then
         print(AMI_VERSION)

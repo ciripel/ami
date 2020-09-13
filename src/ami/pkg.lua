@@ -1,13 +1,8 @@
 local _safe_download_file, _safe_download_string = eliNet.safe_download_file, eliNet.safe_download_string
 
-local _safe_hash_file, _safe_read_file, _safe_write_file =
-    eliFs.safe_hash_file,
-    eliFs.safe_read_file,
-    eliFs.safe_write_file
+local _safe_hash_file, _safe_read_file, _safe_write_file = eliFs.safe_hash_file, eliFs.safe_read_file, eliFs.safe_write_file
 
 local _hjson = eliUtil.generate_safe_functions(require "hjson")
-
--- TODO: channels
 
 local function _normalize_pkg_type(pkgType)
     if pkgType.version == nil then
@@ -25,8 +20,10 @@ local function _download_pkg_def(appType, channel)
     local version = appType.version == "latest" and appType.version or "v/" .. appType.version
     local _channel = type(channel) == "string" and channel ~= "" and "-" .. channel or ""
 
-    local _defUrl = append_to_url(appType.repository, "definition", _pkgId, version .. _channel .. ".json") -- e.g.: /test/app/latest_beta.json 
-    local _defLocalPath = eliPath.combine(CACHE_DIR_DEFS, appType.id .. "@" .. appType.version .. _channel) -- e.g.: test.app@latest_beta
+    -- e.g.: /test/app/latest_beta.json
+    local _defUrl = append_to_url(appType.repository, "definition", _pkgId, version .. _channel .. ".json")
+    -- e.g.: test.app@latest_beta
+    local _defLocalPath = eliPath.combine(CACHE_DIR_DEFS, appType.id .. "@" .. appType.version .. _channel)
 
     if CACHE_DISABLED ~= true then
         local _ok, _pkgDefJson = _safe_read_file(_defLocalPath)
@@ -34,8 +31,7 @@ local function _download_pkg_def(appType, channel)
             local _ok, _pkgDef = _hjson.safe_parse(_pkgDefJson)
             if
                 _ok and
-                    (appType.version ~= "latest" or
-                        (type(_pkgDef.lastAmiCheck) == "number" and _pkgDef.lastAmiCheck + AMI_CACHE_TIMEOUT > os.time()))
+                    (appType.version ~= "latest" or (type(_pkgDef.lastAmiCheck) == "number" and _pkgDef.lastAmiCheck + AMI_CACHE_TIMEOUT > os.time()))
              then
                 return true, _pkgDef
             end
@@ -43,12 +39,12 @@ local function _download_pkg_def(appType, channel)
     end
 
     local _ok, _pkgDefJson = _safe_download_string(_defUrl)
-    if not _ok then 
+    if not _ok then
         return _ok, "Failed to download package definition... ", EXIT_PKG_INVALID_DEFINITION
     end
 
     local _ok, _pkgDef = _hjson.safe_parse(_pkgDefJson)
-    if not _ok then 
+    if not _ok then
         return _ok, "Failed to parse package definition - " .. appType.id .. " - " .. _defLocalPath, EXIT_PKG_INVALID_DEFINITION
     end
 
@@ -99,17 +95,9 @@ local function _get_pkg(pkgDef)
     end
 
     local _ok, _error = _safe_download_file(pkgDef.source, _cachedPkgPath, {followRedirects = true})
-    ami_assert(
-        _ok,
-        "Failed to get package " .. (_error or "") .. " - " .. (pkgDef.id or pkgDef.sha256),
-        EXIT_PKG_DOWNLOAD_ERROR
-    )
+    ami_assert(_ok, "Failed to get package " .. (_error or "") .. " - " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
     local _ok, _hash = _safe_hash_file(_cachedPkgPath, {hex = true})
-    ami_assert(
-        _ok and _hash == pkgDef.sha256,
-        "Failed to verify package integrity - " .. pkgDef.sha256 .. "!",
-        EXIT_PKG_INTEGRITY_CHECK_ERROR
-    )
+    ami_assert(_ok and _hash == pkgDef.sha256, "Failed to verify package integrity - " .. pkgDef.sha256 .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)
     log_trace("Integrity checks of " .. pkgDef.sha256 .. " successful.")
 
     return _cachedPkgPath
@@ -191,7 +179,7 @@ local function _prepare_pkg(appType)
 
     log_trace("Preparing " .. appType.id .. " files...")
     local files = eliZip.get_files(_cachedPkgPath, {flattenRootDir = true})
-    local _filter = function(k, v) -- ignore directories
+    local _filter = function(_, v) -- ignore directories
         return type(v) == "string" and #v > 0 and not v:match("/$")
     end
 
@@ -260,29 +248,17 @@ local function _generate_model(modelInfo)
         return
     end
     log_trace("Generating app model...")
-    local _ok, _model =
-        eliZip.safe_extract_string(
-        eliPath.combine(CACHE_DIR_ARCHIVES, modelInfo.model.source),
-        "model.lua",
-        {flattenRootDir = true}
-    )
+    local _ok, _model = eliZip.safe_extract_string(eliPath.combine(CACHE_DIR_ARCHIVES, modelInfo.model.source), "model.lua", {flattenRootDir = true})
     if not _ok then
         ami_error("Failed to extract app model - " .. _model .. "!", EXIT_PKG_MODEL_GENERATION_ERROR)
     end
     for _, ext in ipairs(modelInfo.extensions) do
-        local _ok, _ext =
-            eliZip.safe_extract_string(
-            eliPath.combine(CACHE_DIR_ARCHIVES, ext.source),
-            "model.ext.lua",
-            {flattenRootDir = true}
-        )
+        local _ok, _ext = eliZip.safe_extract_string(eliPath.combine(CACHE_DIR_ARCHIVES, ext.source), "model.ext.lua", {flattenRootDir = true})
         if not _ok then
             ami_error("Failed to extract app model extension - " .. _ext .. "!", EXIT_PKG_MODEL_GENERATION_ERROR)
         end
         _model =
-            _model ..
-            "\n\n----------- injected ----------- \n--\t" ..
-                ext.source .. "/model.ext.lua\n-------------------------------- \n\n" .. _ext
+            _model .. "\n\n----------- injected ----------- \n--\t" .. ext.source .. "/model.ext.lua\n-------------------------------- \n\n" .. _ext
     end
     local _ok = _safe_write_file("model.lua", _model)
     ami_assert(_ok, "Failed to write model.lua!", EXIT_PKG_MODEL_GENERATION_ERROR)

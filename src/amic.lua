@@ -1,6 +1,4 @@
 #!/usr/sbin/eli
-local os = require "os"
-
 -- extensions
 require "ami.exit_codes"
 require "ami.cli"
@@ -13,8 +11,6 @@ require "ami.sub"
 -- extensions
 
 require "eli.extensions.string":globalize()
-
-local _info, _error = require "eli.util".global_log_factory("ami", "info", "error")
 
 _preprocess_args = eliCli.parse_args
 
@@ -51,12 +47,13 @@ AMI = {
             options = {
                 help = HELP_OPTION
             },
-            action = function(_options, command, args, cli)
+            -- (options, command, args, cli)
+            action = function(_options, _, _, cli)
                 if _options.help then
                     show_cli_help(cli)
                     return
                 end
-                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         },
         setup = {
@@ -82,7 +79,8 @@ AMI = {
                     description = "Disables platform and configuration validation"
                 }
             },
-            action = function(_options, command, args, cli)
+            -- (options, command, args, cli)
+            action = function(_options, _, _, cli)
                 if _options.help then
                     show_cli_help(cli)
                     return
@@ -123,12 +121,13 @@ AMI = {
                     description = "Validates application configuration"
                 }
             },
-            action = function(_options, command, args, cli)
+            -- (options, command, args, cli)
+            action = function(_options, _, _, cli)
                 if _options.help then
                     show_cli_help(cli)
                     return
                 end
-                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         },
         start = {
@@ -139,12 +138,13 @@ AMI = {
             options = {
                 help = HELP_OPTION
             },
-            action = function(_options, command, args, cli)
+            -- (options, command, args, cli)
+            action = function(_options, _, _, cli)
                 if _options.help then
                     show_cli_help(cli)
                     return
                 end
-                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         },
         stop = {
@@ -154,19 +154,21 @@ AMI = {
             options = {
                 help = HELP_OPTION
             },
-            action = function(_options, command, args, cli)
+            -- (options, command, args, cli)
+            action = function(_options, _, _, cli)
                 if _options.help then
                     show_cli_help(cli)
                     return
                 end
-                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         },
         update = {
             index = 5,
             description = "ami 'update' command",
             summary = "Updates the app or returns setup required",
-            action = function(_options, command, args, cli)
+            -- (options, command, args, cli)
+            action = function(_options, _, _, cli)
                 if _options.help then
                     show_cli_help(cli)
                     return
@@ -174,10 +176,7 @@ AMI = {
 
                 local _available, _id, _ver = is_update_available()
                 if _available then
-                    ami_error(
-                        "Found new version " .. _ver .. " of " .. _id .. ", please run setup...",
-                        EXIT_SETUP_REQUIRED
-                    )
+                    ami_error("Found new version " .. _ver .. " of " .. _id .. ", please run setup...", EXIT_SETUP_REQUIRED)
                 end
                 log_info("Application is up to date.")
             end
@@ -193,7 +192,8 @@ AMI = {
                     description = "Removes application data (usually equals app reset)"
                 }
             },
-            action = function(_options, command, args, cli)
+            -- (options, command, args, cli)
+            action = function(_options, _, _, cli)
                 if _options.help then
                     show_cli_help(cli)
                     return
@@ -216,12 +216,13 @@ AMI = {
             options = {
                 help = HELP_OPTION
             },
-            action = function(_options, command, args, cli)
+            -- (options, command, args, cli)
+            action = function(_options, _, _, cli)
                 if _options.help then
                     show_cli_help(cli)
                     return
                 end
-                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, EXIT_NOT_IMPLEMENTED)
+                ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         }
     },
@@ -244,8 +245,7 @@ AMI = {
         if command then
             process_cli(command, args, {strict = {unknown = true}})
         else
-            _error "No valid command provided!"
-            os.exit(2)
+            ami_error("No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
         end
     end
 }
