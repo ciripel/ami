@@ -1,5 +1,7 @@
 local _test = require"tests.vendor.u-test"
 TEST = _test
+
+require"tests.test.cli"
 require"tests.test.plugin"
 require"tests.test.pkg"
 require"tests.test.tpl"

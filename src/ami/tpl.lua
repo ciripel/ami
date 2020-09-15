@@ -29,7 +29,7 @@ function render_templates()
    local _vm = {
       configuration = _configuration,
       model = _model,
-      ROOT_DIR = eliProc.cwd(),
+      ROOT_DIR = eliProc.EPROC and eliProc.cwd() or ".",
       ID = APP.id,
       USER = APP.user
    }

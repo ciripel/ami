@@ -1,5 +1,5 @@
 REPOSITORY_URL = "https://raw.githubusercontent.com/cryon-io/air/master/ami/"
-AMI_VERSION = "0.3.0"
+AMI_VERSION = "0.3.1"
 AMI_ABOUT = "AMI - Application Management Interface - cli " .. AMI_VERSION .. " (C) 2020 cryon.io"
 APP_CONFIGURATION_CANDIDATES = {"app.hjson", "app.json"}
 APP_CONFIGURATION_PATH = nil
@@ -28,7 +28,7 @@ function set_cache_dir(path)
         path = ""
     end
     if not eliPath.isabs(path) then
-        path = eliPath.combine(eliProc.cwd(), path)
+        path = eliPath.combine(eliProc.EPROC and eliProc.cwd() or ".", path)
     end
 
     CACHE_DIR = path
@@ -121,7 +121,7 @@ basicCliOptions = {
     }
 }
 
-local _parasedOptions = parse_args(arg, {options = basicCliOptions}, {strict = false, ignoreCommands = true})
+local _parasedOptions = parse_args(arg, {options = basicCliOptions}, {strict = false, stopOnCommand = true})
 
 if _parasedOptions["local-sources"] then
     local _ok, _localPkgsFile = eliFs.safe_read_file(_parasedOptions["local-sources"])

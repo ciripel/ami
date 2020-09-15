@@ -139,7 +139,10 @@ function load_plugin(name, options)
 
     local _originalCwd = eliProc.cwd()
 
-    eliProc.safe_chdir(_loadDir)
+    -- plugins used in non EPROC should be used compiled as single lue file. Requiring sub files from plugin dir wont be available.
+    if eliProc.EPROC then
+        eliProc.safe_chdir(_loadDir)
+    end
     local _ok, _result = pcall(dofile, _entrypoint)
     eliFs.safe_remove(_loadDir, { recurse = true })
     ami_assert(
@@ -147,8 +150,10 @@ function load_plugin(name, options)
         "Failed to require plugin: " .. _pluginId .. " - " .. (type(_result) == "string" and _result or ""),
         EXIT_PLUGIN_LOAD_ERROR
     )
-    local _ok = eliProc.safe_chdir(_originalCwd)
-    ami_assert(_ok, "Failed to chdir after plugin load", EXIT_PLUGIN_LOAD_ERROR)
+    if eliProc.EPROC then
+        local _ok = eliProc.safe_chdir(_originalCwd)
+        ami_assert(_ok, "Failed to chdir after plugin load", EXIT_PLUGIN_LOAD_ERROR)
+    end
     PLUGIN_IN_MEM_CACHE[_pluginId] = _result
     return _result
 end

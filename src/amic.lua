@@ -12,8 +12,6 @@ require "ami.sub"
 
 require "eli.extensions.string":globalize()
 
-_preprocess_args = eliCli.parse_args
-
 load_app_details()
 
 local HELP_OPTION = {
@@ -243,7 +241,7 @@ AMI = {
         end
 
         if command then
-            process_cli(command, args, {strict = {unknown = true}})
+            return process_cli(command, args, {strict = {unknown = true}})
         else
             ami_error("No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
         end
