@@ -46,9 +46,9 @@ AMI = {
                 help = HELP_OPTION
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, cli)
+            action = function(_options, _, _, _cli)
                 if _options.help then
-                    show_cli_help(cli)
+                    show_cli_help(_cli)
                     return
                 end
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
@@ -78,9 +78,9 @@ AMI = {
                 }
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, cli)
+            action = function(_options, _, _, _cli)
                 if _options.help then
-                    show_cli_help(cli)
+                    show_cli_help(_cli)
                     return
                 end
                 local _noOptions = #eliUtil.keys(_options) == 0
@@ -120,9 +120,9 @@ AMI = {
                 }
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, cli)
+            action = function(_options, _, _, _cli)
                 if _options.help then
-                    show_cli_help(cli)
+                    show_cli_help(_cli)
                     return
                 end
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
@@ -137,9 +137,9 @@ AMI = {
                 help = HELP_OPTION
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, cli)
+            action = function(_options, _, _, _cli)
                 if _options.help then
-                    show_cli_help(cli)
+                    show_cli_help(_cli)
                     return
                 end
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
@@ -153,9 +153,9 @@ AMI = {
                 help = HELP_OPTION
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, cli)
+            action = function(_options, _, _, _cli)
                 if _options.help then
-                    show_cli_help(cli)
+                    show_cli_help(_cli)
                     return
                 end
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
@@ -166,9 +166,9 @@ AMI = {
             description = "ami 'update' command",
             summary = "Updates the app or returns setup required",
             -- (options, command, args, cli)
-            action = function(_options, _, _, cli)
+            action = function(_options, _, _, _cli)
                 if _options.help then
-                    show_cli_help(cli)
+                    show_cli_help(_cli)
                     return
                 end
 
@@ -191,9 +191,9 @@ AMI = {
                 }
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, cli)
+            action = function(_options, _, _, _cli)
                 if _options.help then
-                    show_cli_help(cli)
+                    show_cli_help(_cli)
                     return
                 end
 
@@ -215,18 +215,18 @@ AMI = {
                 help = HELP_OPTION
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, cli)
+            action = function(_options, _, _, _cli)
                 if _options.help then
-                    show_cli_help(cli)
+                    show_cli_help(_cli)
                     return
                 end
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         }
     },
-    action = function(_options, command, args, cli)
+    action = function(_options, _command, _args, _cli)
         if _options.help then
-            show_cli_help(cli)
+            show_cli_help(_cli)
             return
         end
 
@@ -240,8 +240,8 @@ AMI = {
             return
         end
 
-        if command then
-            return process_cli(command, args, {strict = {unknown = true}})
+        if _command then
+            return process_cli(_command, _args, {strict = {unknown = true}})
         else
             ami_error("No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
         end
