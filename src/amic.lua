@@ -40,17 +40,13 @@ AMI = {
     commands = {
         info = {
             index = 0,
-            description = _cmdImplementationStatus .. " ami 'info' sub command",
+            description = "ami 'info' sub command",
             summary = _cmdImplementationStatus .. " Prints runtime info and status of the app",
             options = {
                 help = HELP_OPTION
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, _cli)
-                if _options.help then
-                    show_cli_help(_cli)
-                    return
-                end
+            action = function()
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         },
@@ -78,11 +74,7 @@ AMI = {
                 }
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, _cli)
-                if _options.help then
-                    show_cli_help(_cli)
-                    return
-                end
+            action = function(_options)
                 local _noOptions = #eliUtil.keys(_options) == 0
 
                 local _subAmiLoaded = false
@@ -106,7 +98,7 @@ AMI = {
         },
         validate = {
             index = 2,
-            description = _cmdImplementationStatus .. " ami 'validate' sub command",
+            description = "ami 'validate' sub command",
             summary = _cmdImplementationStatus .. " Validates app configuration and platform support",
             options = {
                 help = HELP_OPTION,
@@ -120,44 +112,32 @@ AMI = {
                 }
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, _cli)
-                if _options.help then
-                    show_cli_help(_cli)
-                    return
-                end
+            action = function()
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         },
         start = {
             index = 3,
             aliases = {"s"},
-            description = _cmdImplementationStatus .. " ami 'start' sub command ",
+            description = "ami 'start' sub command ",
             summary = _cmdImplementationStatus .. " Starts the app",
             options = {
                 help = HELP_OPTION
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, _cli)
-                if _options.help then
-                    show_cli_help(_cli)
-                    return
-                end
+            action = function()
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         },
         stop = {
             index = 4,
-            description = _cmdImplementationStatus .. " ami 'stop' sub command",
+            description = "ami 'stop' sub command",
             summary = _cmdImplementationStatus .. " Stops the app",
             options = {
                 help = HELP_OPTION
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, _cli)
-                if _options.help then
-                    show_cli_help(_cli)
-                    return
-                end
+            action = function()
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         },
@@ -166,12 +146,7 @@ AMI = {
             description = "ami 'update' command",
             summary = "Updates the app or returns setup required",
             -- (options, command, args, cli)
-            action = function(_options, _, _, _cli)
-                if _options.help then
-                    show_cli_help(_cli)
-                    return
-                end
-
+            action = function()
                 local _available, _id, _ver = is_update_available()
                 if _available then
                     ami_error("Found new version " .. _ver .. " of " .. _id .. ", please run setup...", EXIT_SETUP_REQUIRED)
@@ -191,12 +166,7 @@ AMI = {
                 }
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, _cli)
-                if _options.help then
-                    show_cli_help(_cli)
-                    return
-                end
-
+            action = function(_options)
                 if _options.all then
                     remove_app()
                     log_success("Application removed.")
@@ -209,27 +179,18 @@ AMI = {
         },
         about = {
             index = 7,
-            description = _cmdImplementationStatus .. " ami 'about' sub command",
+            description = "ami 'about' sub command",
             summary = _cmdImplementationStatus .. " Prints informations about app",
             options = {
                 help = HELP_OPTION
             },
             -- (options, command, args, cli)
-            action = function(_options, _, _, _cli)
-                if _options.help then
-                    show_cli_help(_cli)
-                    return
-                end
+            action = function()
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
             end
         }
     },
-    action = function(_options, _command, _args, _cli)
-        if _options.help then
-            show_cli_help(_cli)
-            return
-        end
-
+    action = function(_options, _command, _args)
         if _options.version then
             print(AMI_VERSION)
             return

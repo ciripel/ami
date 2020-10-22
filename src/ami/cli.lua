@@ -259,6 +259,10 @@ function process_cli(cli, args)
         table.insert(command.__commandStack, command and command.id)
     end
 
+    if not cli.customHelp and optionList.help then
+        return show_cli_help(cli)
+    end
+
     return exec_native_action(action, optionList, command, remainingArgs, cli)
 end
 
