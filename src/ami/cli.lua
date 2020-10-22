@@ -2,6 +2,12 @@ local _eliUtil = require "eli.util"
 local keys = _eliUtil.keys
 local _newLine = require "eli.path".platform == "unix" and "\n" or "\r\n"
 
+local HELP_OPTION = {
+    index = 100,
+    aliases = {"h"},
+    description = "Prints this help message"
+}
+
 --[[
     Parses value into required type if possible.
     @param {any} value
@@ -123,6 +129,7 @@ local function _is_array_of_tables(args)
     end
     return true
 end
+
 --[[
     Generates optionList, parameterValues, command from args.
     @param {string{}} args
@@ -140,6 +147,11 @@ function parse_args(args, scheme, options)
 
     local _cliOptions = type(scheme.options) == "table" and scheme.options or {}
     local _cliCmds = type(scheme.commands) == "table" and scheme.commands or {}
+
+    -- inject help option
+    if not scheme.customHelp and not _cliOptions.help then
+        _cliOptions.help = HELP_OPTION
+    end
 
     local _to_map = function(t)
         local _result = {}
@@ -212,7 +224,7 @@ end
     @param {string{}} args
 ]]
 function process_cli(cli, args)
-    ami_assert(cli, "cli scheme not provided!", EXIT_CLI_SCHEME_MISSING)
+    ami_assert(type(cli) == "table", "cli scheme not provided!", EXIT_CLI_SCHEME_MISSING)
 
     args = eliCli.parse_args(args)
 

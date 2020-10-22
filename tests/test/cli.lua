@@ -116,6 +116,7 @@ _test["process cli (native)"] = function()
             end
         end
     }
+
     local _argList = {"test", "-v=testResult2", "return" }
     local _ok, _result = pcall(process_cli, _cli, _argList)
     _test.assert(_ok)
@@ -124,6 +125,35 @@ _test["process cli (native)"] = function()
     local _ok, _result = pcall(process_cli, _cli, _argList)
     _test.assert(_ok)
     _test.assert(_result == nil)
+
+    _cli = {
+        title = "test --help",
+        description = "test cli description",
+        commands = {
+            test = {
+                action = "tests/assets/cli/test_native.lua",
+                description = "test cli test command",
+                options = {
+                },
+                commands = {
+                    ["return"] = {
+                        description = "Returns result from option value"
+                    }
+                }
+            }
+        },
+        action = function(_, command, args, _)
+            if command then
+                return process_cli(command, args, {strict = {unknown = true}})
+            else
+                ami_error("No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
+            end
+        end
+    }
+
+    local _argList = {"test", "--help" }
+    local _ok = pcall(process_cli, _cli, _argList)
+    _test.assert(_ok)
 end
 
 _test["process cli (external)"] = function()

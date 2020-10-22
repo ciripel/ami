@@ -14,12 +14,6 @@ require "eli.extensions.string":globalize()
 
 load_app_details()
 
-local HELP_OPTION = {
-    index = 100,
-    aliases = {"h"},
-    description = "Prints this help message"
-}
-
 local _cmdImplementationStatus = "(not installed)"
 local _cmdImplementationError = EXIT_NOT_INSTALLED
 
@@ -42,9 +36,6 @@ AMI = {
             index = 0,
             description = "ami 'info' sub command",
             summary = _cmdImplementationStatus .. " Prints runtime info and status of the app",
-            options = {
-                help = HELP_OPTION
-            },
             -- (options, command, args, cli)
             action = function()
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
@@ -55,7 +46,6 @@ AMI = {
             description = "ami 'setup' sub command",
             summary = "Run setups based on specified options app/configure",
             options = {
-                help = HELP_OPTION,
                 environment = {
                     index = 0,
                     description = "Creates application environment"
@@ -101,7 +91,6 @@ AMI = {
             description = "ami 'validate' sub command",
             summary = _cmdImplementationStatus .. " Validates app configuration and platform support",
             options = {
-                help = HELP_OPTION,
                 platform = {
                     index = 1,
                     description = "Validates application platform"
@@ -121,9 +110,6 @@ AMI = {
             aliases = {"s"},
             description = "ami 'start' sub command ",
             summary = _cmdImplementationStatus .. " Starts the app",
-            options = {
-                help = HELP_OPTION
-            },
             -- (options, command, args, cli)
             action = function()
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
@@ -133,9 +119,6 @@ AMI = {
             index = 4,
             description = "ami 'stop' sub command",
             summary = _cmdImplementationStatus .. " Stops the app",
-            options = {
-                help = HELP_OPTION
-            },
             -- (options, command, args, cli)
             action = function()
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
@@ -159,7 +142,6 @@ AMI = {
             description = "ami 'remove' sub command",
             summary = "Remove the app or parts based on options",
             options = {
-                help = HELP_OPTION,
                 all = {
                     index = 2,
                     description = "Removes application data (usually equals app reset)"
@@ -181,9 +163,6 @@ AMI = {
             index = 7,
             description = "ami 'about' sub command",
             summary = _cmdImplementationStatus .. " Prints informations about app",
-            options = {
-                help = HELP_OPTION
-            },
             -- (options, command, args, cli)
             action = function()
                 ami_error("Violation of AMI standard! " .. _cmdImplementationStatus, _cmdImplementationError)
