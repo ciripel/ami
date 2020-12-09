@@ -1,5 +1,26 @@
 local _lustache = require "lustache"
 
+local function _to_renderable_data(source)
+   local _result = {}
+   for key, value in pairs(source) do
+      _result[key] = value
+      if type(value) == "table" and not eliUtil.is_array(value) then
+         _result[key .. "__ARRAY"] = eliUtil.to_array(value)
+      end
+
+      if type(key) == "string" and key:lower():match("args") and eliUtil.is_array(value) then
+         local _args = {}
+         for _, _arg in ipairs(value) do
+            if type(_arg) == "string" or type(_arg) == "boolean" or type(_arg) == "number" then
+               table.insert(_args, _arg)
+            end
+         end
+         _result[key .. "__CLI_ARGS"] = exString.join(" ", table.unpack(_args))
+      end
+   end
+   return _result
+end
+
 function render_templates()
    log_info("Generating app templated files...")
    local _ok, _templates = eliFs.safe_read_dir(".ami-templates", {recurse = true, asDirEntries = true})
@@ -8,23 +29,9 @@ function render_templates()
       return
    end
 
-   local _model = {}
-   -- transform model object like tables to array tables
-   for key, value in pairs(APP.model) do
-      _model[key] = value
-      if type(value) == "table" and not eliUtil.is_array(value) then
-         _model[key .. "__ARRAY"] = eliUtil.to_array(value)
-      end
-   end
-
-   local _configuration = {}
-   -- transform configuration object like tables to array tables
-   for key, value in pairs(APP.configuration) do
-      _configuration[key] = value
-      if type(value) == "table" and not eliUtil.is_array(value) then
-         _configuration[key .. "__ARRAY"] = eliUtil.to_array(value)
-      end
-   end
+   -- transform model and configuration table to renderable data ( __ARRAY, __CLI_ARGS)
+   local _model = _to_renderable_data(APP.model)
+   local _configuration = _to_renderable_data(APP.configuration)
 
    local _vm = {
       configuration = _configuration,
