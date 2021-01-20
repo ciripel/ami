@@ -1,0 +1,57 @@
+# PUBLIC
+am
+    .execute(cliOrCmd, args)    
+        - executes specified command with defined args
+        - cmd defaults to am.__inteface
+
+    .parse_args(cliOrCmd, args, options)
+        - parses provided args or args passed to aplication if args not specified
+        - relative to cliOrCmd with respect to specified options
+        - cmd defaults to am.__inteface
+
+    .print_help(cliOrCmd)
+        - prints help of specified cliOrCmd
+        - cmd defaults to am.__inteface
+
+    .app
+        .load_config()
+        .prepare()
+        .render()
+        .get_version()
+        .is_update_available()
+        .remove_data()
+        .remove()
+
+        .get()                              - gets loaded value from app.h/json
+        .get_config(key = nil, default)     - gets value from loaded config or config
+        .get_model(key = nil, default)      - gets value from loaded config or config
+        .set_model(newModel, path?, options: { merge = false, overwrite = true })
+            - sets model or model value
+
+    .cache
+        .rm_pkgs()      - removes packages from cache
+        .rm_plugins()   - removes plugins from cache
+        .erase()        - removes everything from cache
+
+    .plugin
+        .get(id, version) - gets plugin from cache or downloads it
+
+
+# INTERNALS
+am
+    .__interface        - AMI reference
+    .__reload_interface - updates AMI reference (above) from ami.lua
+
+    .app
+        .__is_loaded()  - returns true if app config was loaded
+    
+# TEST_MODE:
+am
+    .app
+        .__get() - returns internal __APP
+        .__set() - sets internal __APP
+
+    .plugin
+        .__remove_cached(id, version) - removes all plugins from cache
+
+TODO: consider possibility to drop dependency on posix/win32 fs api
