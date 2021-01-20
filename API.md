@@ -3,6 +3,17 @@ am
     .execute(cliOrCmd, args)    
         - executes specified command with defined args
         - cmd defaults to am.__inteface
+    
+    .execute_extension(path, args?, options)
+        - executes file as am extension providing access to all globals, am including
+        - options:
+            - contextFailExitCode: number 
+            - partialErrorMsg: string - partial fallback error message, internal error is added to the end of this msg
+            - errorMsg: string - fall back error message, internal error is not included
+
+    .get_proc_args()
+        - returns all args passed to ami process
+        - e.g. for `ami setup --configure` returns `{ "setup", "--configure" }`
 
     .parse_args(cliOrCmd, args, options)
         - parses provided args or args passed to aplication if args not specified
@@ -12,6 +23,11 @@ am
     .print_help(cliOrCmd)
         - prints help of specified cliOrCmd
         - cmd defaults to am.__inteface
+
+    .use_standard(name)
+        - replaces default __interface with base interface of specified standard
+        - default = basic
+        - app standard is built in, all others will be pulled from remote or local cache
 
     .app
         .load_config()
@@ -40,7 +56,8 @@ am
 # INTERNALS
 am
     .__interface        - AMI reference
-    .__reload_interface - updates AMI reference (above) from ami.lua
+    .__parse_base_args() - parses default args
+    .__reload_interface() - updates AMI reference (above) from ami.lua
 
     .app
         .__is_loaded()  - returns true if app config was loaded
