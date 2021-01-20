@@ -25,16 +25,12 @@ am
         - prints help of specified cliOrCmd
         - cmd defaults to am.__inteface
 
-    .use_standard(name)
-        - replaces default __interface with base interface of specified standard
-        - default = basic
-        - app standard is built in, all others will be pulled from remote or local cache
-
     .app
         .load_config()
         .prepare()
         .render()
         .get_version()
+        .get_type()
         .is_update_available()
         .remove_data()
         .remove()
