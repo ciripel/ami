@@ -1,3 +1,4 @@
+```md
 # PUBLIC
 am
     .execute(cliOrCmd, args)    
@@ -72,3 +73,4 @@ am
         .__remove_cached(id, version) - removes all plugins from cache
 
 TODO: consider possibility to drop dependency on posix/win32 fs api
+```
