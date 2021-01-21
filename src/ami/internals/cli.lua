@@ -1,6 +1,4 @@
-local _eliUtil = require "eli.util"
-local keys = _eliUtil.keys
-local _newLine = require "eli.path".platform == "unix" and "\n" or "\r\n"
+local _newLine = path.platform == "unix" and "\n" or "\r\n"
 
 local HELP_OPTION = {
     index = 100,
@@ -13,7 +11,7 @@ local HELP_OPTION = {
     @param {any} value
     @param {string} _type
 ]]
-local function parse_value(value, _type)
+local function _parse_value(value, _type)
     if type(value) ~= "string" then
         return value
     end
@@ -66,7 +64,7 @@ end
     @param {String{}} args
     @param {boolean} readOutput
 ]]
-local function exec_external_action(exec, args, injectArgs)
+local function _exec_external_action(exec, args, injectArgs)
     local _args = {}
     if type(injectArgs) == "table" then
         for _, v in ipairs(injectArgs) do
@@ -78,17 +76,16 @@ local function exec_external_action(exec, args, injectArgs)
     for _, v in ipairs(args) do
         table.insert(_args, v.arg)
     end
-    if not eliProc.EPROC then
+    if not proc.EPROC then
         local execArgs = ""
         for _, v in ipairs(args) do
             execArgs = execArgs .. ' "' .. v.arg:gsub("\\", "\\\\"):gsub('"', '\\"') .. '"' -- add qouted string
         end
-
-        local _, _, _exitcode = eliProc.os_execute(exec .. " " .. execArgs)
-        return _exitcode
+        local _result = proc.exec(exec .. " " .. execArgs)
+        return _result.exitcode
     end
-
-    return eliProc.execute(exec, _args, {wait = true, stdio = false})
+    local _result = proc.spawn(exec, _args, {wait = true, stdio = "ignore"})
+    return _result.exitcode
 end
 
 --[[
@@ -96,7 +93,7 @@ end
     @param {string} modulePath
     @params {any{}} ...
 ]]
-local function exec_native_action(action, ...)
+local function _exec_native_action(action, ...)
     if type(action) == "string" then
         return loadfile(action)(...)
     elseif type(action) == "table" then
@@ -118,7 +115,7 @@ local function exec_native_action(action, ...)
 end
 
 local function _is_array_of_tables(args)
-    if not _eliUtil.is_array(args) then
+    if not util.is_array(args) then
         return false
     else
         for _, v in ipairs(args) do
@@ -136,9 +133,9 @@ end
     @param {table{}} options
     @param {table{}} commands
 ]]
-function parse_args(args, scheme, options)
+local function _parse_args(args, scheme, options)
     if not _is_array_of_tables(args) then
-        args = eliCli.parse_args(args)
+        args = cli.parse_args(args)
     end
 
     if type(options) ~= "table" then
@@ -156,7 +153,7 @@ function parse_args(args, scheme, options)
     local _to_map = function(t)
         local _result = {}
         for k, v in pairs(t) do
-            local _def = _eliUtil.merge_tables({id = k}, v)
+            local _def = util.merge_tables({id = k}, v)
             if type(v.aliases) == "table" then
                 for _, a in ipairs(v.aliases) do
                     _result[a] = _def
@@ -179,7 +176,7 @@ function parse_args(args, scheme, options)
         if _arg.type == "option" then
             local _cliOptionDef = _cliOptionsMap[_arg.id]
             ami_assert(type(_cliOptionDef) == "table", "Unknown option - '" .. _arg.arg .. "'!", EXIT_CLI_OPTION_UNKNOWN)
-            _cliOptionList[_cliOptionDef.id] = parse_value(_arg.value, _cliOptionDef.type)
+            _cliOptionList[_cliOptionDef.id] = _parse_value(_arg.value, _cliOptionDef.type)
         else
             if not options.stopOnCommand then
                 _cliCmd = _cliCmdMap[_arg.arg]
@@ -199,7 +196,7 @@ end
 --[[
     Validates processed args, whether there are valid in given cli definition
 ]]
-local function default_validate_args(cli, optionList, command)
+local function _default_validate_args(cli, optionList, command)
     local options = type(cli.options) == "table" and cli.options or {}
     --local commands = type(cli.commands) == "table" and cli.commands or {}
 
@@ -218,67 +215,7 @@ local function default_validate_args(cli, optionList, command)
     return true
 end
 
---[[
-    Executes __cli__ definitions based on the args
-    @param {table} cli
-    @param {string{}} args
-]]
-function process_cli(cli, args)
-    ami_assert(type(cli) == "table", "cli scheme not provided!", EXIT_CLI_SCHEME_MISSING)
-
-    args = eliCli.parse_args(args)
-
-    local validate = type(cli.validate) == "function" and cli.validate or default_validate_args
-
-    local cliId = cli.id and "(" .. cli.id .. ")" or ""
-    local action = cli.action
-
-    if not action and cli.type == "external" and type(cli.exec) == "string" then
-        action = cli.exec
-    end
-
-    ami_assert(
-        type(action) == "table" or type(action) == "function" or type(action) == "string",
-        "Action not specified properly or not found! " .. cliId,
-        EXIT_CLI_ACTION_MISSING
-    )
-
-    if cli.type == "external" then
-        ami_assert(
-            type(action) == "string" or type(exec) == "string",
-            "Action has to be string specifying path to external cli",
-            EXIT_CLI_INVALID_DEFINITION
-        )
-        return exec_external_action(action, args, cli.injectArgs)
-    end
-
-    if cli.type == "raw" then
-        local _rawArgs = {}
-        for _, v in ipairs(args) do
-            table.insert(_rawArgs, v.arg)
-        end
-        return exec_native_action(action, _rawArgs)
-    end
-
-    local optionList, command, remainingArgs = parse_args(args, cli)
-
-    local _valid, _error = validate(cli, optionList, command)
-    ami_assert(_valid, _error, EXIT_CLI_ARG_VALIDATION_ERROR)
-
-    if type(command) == "table" then
-        command.__cliId = cli.__cliId or cli.id
-        command.__commandStack = cli.__commandStack or {}
-        table.insert(command.__commandStack, command and command.id)
-    end
-
-    if not cli.customHelp and optionList.help then
-        return show_cli_help(cli)
-    end
-
-    return exec_native_action(action, optionList, command, remainingArgs, cli)
-end
-
-local function are_all_hidden(t)
+local function _are_all_hidden(t)
     for _, v in pairs(t) do
         if not v.hidden then
             return false
@@ -287,7 +224,7 @@ local function are_all_hidden(t)
     return true
 end
 
-local function compare_args(t, a, b)
+local function _compare_args(t, a, b)
     if t[a].index and t[b].index then
         return t[a].index < t[b].index
     else
@@ -295,11 +232,11 @@ local function compare_args(t, a, b)
     end
 end
 
-local function generate_usage(cli, includeOptionsInUsage)
-    local hasCommands = cli.commands and #keys(cli.commands)
-    local hasOptions = cli.options and #keys(cli.options)
+local function _generate_usage(cli, includeOptionsInUsage)
+    local hasCommands = cli.commands and #util.keys(cli.commands)
+    local hasOptions = cli.options and #util.keys(cli.options)
 
-    local cliId = cli.__cliId or cli.id or eliPath.file(APP_ROOT_SCRIPT or "")
+    local cliId = cli.__cliId or cli.id or path.file(APP_ROOT_SCRIPT or "")
     local usage = "Usage: " .. cliId .. " "
     local optionalBegin = "["
     local optionalEnd = "]"
@@ -309,9 +246,9 @@ local function generate_usage(cli, includeOptionsInUsage)
     end
 
     if hasOptions and includeOptionsInUsage then
-        local options = keys(cli.options)
+        local options = util.keys(cli.options)
         local sort_function = function(a, b)
-            return compare_args(cli.options, a, b)
+            return _compare_args(cli.options, a, b)
         end
 
         table.sort(options, sort_function)
@@ -347,16 +284,16 @@ local function generate_usage(cli, includeOptionsInUsage)
     return usage
 end
 
-local function generate_help_message(cli)
-    local hasCommands = cli.commands and #keys(cli.commands) and not are_all_hidden(cli.commands)
-    local hasOptions = cli.options and #keys(cli.options) and not are_all_hidden(cli.options)
+local function _generate_help_message(cli)
+    local hasCommands = cli.commands and #util.keys(cli.commands) and not _are_all_hidden(cli.commands)
+    local hasOptions = cli.options and #util.keys(cli.options) and not _are_all_hidden(cli.options)
 
     local rows = {}
     if hasOptions then
         table.insert(rows, {left = "Options: ", description = ""})
-        local options = keys(cli.options)
+        local options = util.keys(cli.options)
         local sort_function = function(a, b)
-            return compare_args(cli.options, a, b)
+            return _compare_args(cli.options, a, b)
         end
         table.sort(options, sort_function)
 
@@ -391,9 +328,9 @@ local function generate_help_message(cli)
     if hasCommands then
         table.insert(rows, {left = "", description = ""})
         table.insert(rows, {left = "Commands: ", description = ""})
-        local commands = keys(cli.commands)
+        local commands = util.keys(cli.commands)
         local sort_function = function(a, b)
-            return compare_args(cli.commands, a, b)
+            return _compare_args(cli.commands, a, b)
         end
         table.sort(commands, sort_function)
 
@@ -426,7 +363,7 @@ end
 --[[
     Shows cli help
 ]]
-function show_cli_help(cli, options)
+local function _print_help(cli, options)
     if type(options) ~= "table" then
         options = {}
     end
@@ -458,7 +395,7 @@ function show_cli_help(cli, options)
     elseif type(cli.help_message) == "string" then
         print(cli.help_message)
     else
-        if OUTPUT_FORMAT == "json" then
+        if am.options.OUTPUT_FORMAT == "json" then
             print(require "hjson".stringify(cli.commands, {invalidObjectsAsType = true, indent = false}))
         else
             -- collect and print help
@@ -472,12 +409,81 @@ function show_cli_help(cli, options)
                 print("- " .. _summary .. _newLine)
             end
             if printUsage then
-                print(generate_usage(cli, includeOptionsInUsage) .. _newLine)
+                print(_generate_usage(cli, includeOptionsInUsage) .. _newLine)
             end
-            print(generate_help_message(cli))
+            print(_generate_help_message(cli))
             if type(footer) == "string" then
                 print(footer)
             end
         end
     end
 end
+
+--[[
+    Executes __cli__ definitions based on the args
+    @param {table} cli
+    @param {string{}} args
+]]
+local function _process_cli(_cli, args)
+    if _cli == nil then
+        _cli = AMI
+    end
+    ami_assert(type(_cli) == "table", "cli scheme not provided!", EXIT_CLI_SCHEME_MISSING)
+
+    args = cli.parse_args(args)
+
+    local validate = type(_cli.validate) == "function" and _cli.validate or _default_validate_args
+
+    local _cliId = _cli.id and "(" .. _cli.id .. ")" or ""
+    local action = _cli.action
+
+    if not action and _cli.type == "external" and type(_cli.exec) == "string" then
+        action = _cli.exec
+    end
+
+    ami_assert(
+        type(action) == "table" or type(action) == "function" or type(action) == "string",
+        "Action not specified properly or not found! " .. _cliId,
+        EXIT_CLI_ACTION_MISSING
+    )
+
+    if _cli.type == "external" then
+        ami_assert(
+            type(action) == "string",
+            "Action has to be string specifying path to external cli",
+            EXIT_CLI_INVALID_DEFINITION
+        )
+        return _exec_external_action(action, args, _cli.injectArgs)
+    end
+
+    if _cli.type == "raw" then
+        local _rawArgs = {}
+        for _, v in ipairs(args) do
+            table.insert(_rawArgs, v.arg)
+        end
+        return _exec_native_action(action, _rawArgs)
+    end
+
+    local optionList, command, remainingArgs = _parse_args(args, _cli)
+
+    local _valid, _error = validate(_cli, optionList, command)
+    ami_assert(_valid, _error, EXIT_CLI_ARG_VALIDATION_ERROR)
+
+    if type(command) == "table" then
+        command.__cliId = _cli.__cliId or _cli.id
+        command.__commandStack = _cli.__commandStack or {}
+        table.insert(command.__commandStack, command and command.id)
+    end
+
+    if not _cli.customHelp and optionList.help then
+        return _print_help(_cli)
+    end
+
+    return _exec_native_action(action, optionList, command, remainingArgs, _cli)
+end
+
+return util.generate_safe_functions({
+    parse_args = _parse_args,
+    process = _process_cli,
+    print_help = _print_help
+})
