@@ -32,7 +32,7 @@ local function _execute_extension(path, args, options)
         ami_error("Failed to load extension from " .. path .. " - " .. (_ext or ""))
     end
 
-    local _ok, _error = pcall(_ext, am.options.OUTPUT_FORMAT == "json")
+    local _ok, _error = pcall(_ext, table.unpack(args))
     if not _ok then
         local _errMsg = "Execution of extension [" .. path .. "] failed - " .. (_error or "")
         if type(options.errorMsg) == "string" then
