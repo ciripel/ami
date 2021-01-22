@@ -13,7 +13,6 @@ local function _execute(cmd, args)
         cmd = _am.__interface.commands[cmd]
     end
     ami_assert(type(cmd) == "table", "No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
-
     return _cli.process(cmd, args)
 end
 
@@ -84,6 +83,10 @@ local function __reload_interface()
     return _isAppSpecific
 end
 
+local function __set_interface(ami)
+    _am.__interface = ami
+end
+
 _am = {
     cache = require"ami.cache",
     app = require"ami.app",
@@ -95,7 +98,8 @@ _am = {
     parse_args = _parse_args,
     print_help = _print_help,
     __parse_base_args = __parse_base_args,
-    __reload_interface = __reload_interface
+    __reload_interface = __reload_interface,
+    __set_interface = TEST_MODE and __set_interface
 }
 
 return function (...)
