@@ -1,4 +1,5 @@
 local _cli = require"ami.internals.cli"
+local _exec = require"ami.internals.exec"
 local _inteface = require"ami.internals.interface"
 
 local _amiArgs = {}
@@ -14,34 +15,6 @@ local function _execute(cmd, args)
     end
     ami_assert(type(cmd) == "table", "No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
     return _cli.process(cmd, args)
-end
-
-local function _execute_extension(path, args, options)
-    if type(options) ~= "table" then
-        if not util.is_array(args) then
-            options = args
-        else
-            options = {}
-        end
-    end
-    local _pastCtxExitCode = AMI_CONTEXT_FAIL_EXIT_CODE
-    AMI_CONTEXT_FAIL_EXIT_CODE = options.contextFailExitCode
-    local _ok, _ext = pcall(loadfile, path)
-    if not _ok then
-        ami_error("Failed to load extension from " .. path .. " - " .. (_ext or ""))
-    end
-
-    local _ok, _error = pcall(_ext, table.unpack(args))
-    if not _ok then
-        local _errMsg = "Execution of extension [" .. path .. "] failed - " .. (_error or "")
-        if type(options.errorMsg) == "string" then
-            _errMsg = options.errorMsg
-        elseif type(options.partialErrorMsg) == "string" then
-            _errMsg = options.partialErrorMsg .. " - " .. _error
-        end
-        ami_error(_errMsg)
-    end
-    AMI_CONTEXT_FAIL_EXIT_CODE = _pastCtxExitCode
 end
 
 local function _get_proc_args()
@@ -93,7 +66,7 @@ _am = {
     options = require"ami.options",
     plugin = require"ami.plugin",
     execute = _execute,
-    execute_extension = _execute_extension,
+    execute_extension = _exec.extension,
     get_proc_args = _get_proc_args,
     parse_args = _parse_args,
     print_help = _print_help,

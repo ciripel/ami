@@ -1,4 +1,5 @@
 local _newLine = path.platform == "unix" and "\n" or "\r\n"
+local _exec = require("ami.internals.exec")
 
 local HELP_OPTION = {
     index = 100,
@@ -56,62 +57,6 @@ local function _parse_value(value, _type)
 
     local _parse_fn = _parse_map[_type] or _parse_map.auto
     return _parse_fn(value)
-end
-
---[[
-    Executes external action - (os.execute)
-    @param {string} exec
-    @param {String{}} args
-    @param {boolean} readOutput
-]]
-local function _exec_external_action(exec, args, injectArgs)
-    local _args = {}
-    if type(injectArgs) == "table" then
-        for _, v in ipairs(injectArgs) do
-            if type(v) == "string" then
-                table.insert(_args, v)
-            end
-        end
-    end
-    for _, v in ipairs(args) do
-        table.insert(_args, v.arg)
-    end
-    if not proc.EPROC then
-        local execArgs = ""
-        for _, v in ipairs(args) do
-            execArgs = execArgs .. ' "' .. v.arg:gsub("\\", "\\\\"):gsub('"', '\\"') .. '"' -- add qouted string
-        end
-        local _result = proc.exec(exec .. " " .. execArgs)
-        return _result.exitcode
-    end
-    local _result = proc.spawn(exec, _args, {wait = true, stdio = "ignore"})
-    return _result.exitcode
-end
-
---[[
-    Executes native action - (lua file module)
-    @param {string} modulePath
-    @params {any{}} ...
-]]
-local function _exec_native_action(action, ...)
-    if type(action) == "string" then
-        return loadfile(action)(...)
-    elseif type(action) == "table" then
-        -- DEPRECATED
-        log_warn("DEPRECATED: Code actions are deprecated and will be removed in future.")
-        log_info("HINT: Consider defining action as function or usage of type 'native' pointing to lua file...")
-        if type(action.code) == "string" then
-            return load(action.code)(...)
-        elseif type(action.code) == "function" then
-            return action.code(...)
-        else
-            error("Unsupported action.code type!")
-        end
-    elseif type(action) == "function" then
-        return action(...)
-    else
-        error("Unsupported action.code type!")
-    end
 end
 
 local function _is_array_of_tables(args)
@@ -453,7 +398,7 @@ local function _process_cli(_cli, args)
             "Action has to be string specifying path to external cli",
             EXIT_CLI_INVALID_DEFINITION
         )
-        return _exec_external_action(action, args, _cli.injectArgs)
+        return _exec.external_action(action, args, _cli.injectArgs)
     end
 
     if _cli.type == "raw" then
@@ -461,7 +406,7 @@ local function _process_cli(_cli, args)
         for _, v in ipairs(args) do
             table.insert(_rawArgs, v.arg)
         end
-        return _exec_native_action(action, _rawArgs)
+        return _exec.native_action(action, _rawArgs)
     end
 
     local optionList, command, remainingArgs = _parse_args(args, _cli)
@@ -479,7 +424,10 @@ local function _process_cli(_cli, args)
         return _print_help(_cli)
     end
 
-    return _exec_native_action(action, optionList, command, remainingArgs, _cli)
+    if _cli.type == "extension" then
+        return _exec.extension(action, { optionList, command, remainingArgs, _cli }, _cli)
+    end
+    return _exec.native_action(action, optionList, command, remainingArgs, _cli)
 end
 
 return util.generate_safe_functions({

@@ -12,6 +12,7 @@ package.loaded["ami.internals.options.init"] = require"src.ami.internals.options
 package.loaded["ami.internals.interface.base"] = require"src.ami.internals.interface.base"
 package.loaded["ami.internals.interface.app"] = require"src.ami.internals.interface.app"
 package.loaded["ami.options"] = require"src.ami.options"
+package.loaded["ami.internals.exec"] = require"src.ami.internals.exec"
 package.loaded["ami.internals.cli"] = require"src.ami.internals.cli"
 package.loaded["ami.cache"] = require"src.ami.cache"
 package.loaded["ami.internals.pkg"] = require"src.ami.internals.pkg"
