@@ -186,8 +186,6 @@ _test["ami remove --all"] = function()
     os.chdir(_defaultCwd)
 end
 
--- // TODO: test ami extensions raw and classic
-
 ami_error = _originalAmiErrorFn
 if not TEST then
     _test.summary()

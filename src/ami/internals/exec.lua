@@ -2,7 +2,6 @@
     Executes external action - (os.execute)
     @param {string} exec
     @param {String{}} args
-    @param {boolean} readOutput
 ]]
 local function _exec_external_action(exec, args, injectArgs)
     local _args = {}
@@ -21,10 +20,12 @@ local function _exec_external_action(exec, args, injectArgs)
         for _, v in ipairs(args) do
             execArgs = execArgs .. ' "' .. v.arg:gsub("\\", "\\\\"):gsub('"', '\\"') .. '"' -- add qouted string
         end
-        local _result = proc.exec(exec .. " " .. execArgs)
+        local _ok, _result = proc.safe_exec(exec .. " " .. execArgs)
+        ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
         return _result.exitcode
     end
-    local _result = proc.spawn(exec, _args, {wait = true, stdio = "ignore"})
+    local _ok, _result = proc.safe_spawn(exec, _args, {wait = true, stdio = "ignore"})
+    ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
     return _result.exitcode
 end
 
@@ -33,23 +34,10 @@ end
     @param {string} modulePath
     @params {any{}} ...
 ]]
-local function _exec_native_action(action, ...)
-    if type(action) == "string" then
-        return loadfile(action)(...)
-    elseif type(action) == "function" then
-        return action(...)
-    else
-        error("Unsupported action.code type!")
+local function _exec_native_action(action, args, options)
+    if type(action) ~= "string" and  type(action) ~= "function" then
+        error("Unsupported action/extension type (" .. type(action) .. ")!")
     end
-end
-
---[[
-    Executes extension - automatically wrapped lua file and handles exceptions
-    @param {string} path
-    @params {args{}} array of argumens
-    @params {options{}}
-]]
-local function _exec_extension(path, args, options)
     if type(options) ~= "table" then
         if not util.is_array(args) then
             options = args
@@ -59,26 +47,31 @@ local function _exec_extension(path, args, options)
     end
     local _pastCtxExitCode = AMI_CONTEXT_FAIL_EXIT_CODE
     AMI_CONTEXT_FAIL_EXIT_CODE = options.contextFailExitCode
-    local _ok, _ext = pcall(loadfile, path)
-    if not _ok then
-        ami_error("Failed to load extension from " .. path .. " - " .. (_ext or ""))
+    local _id = util.get(options, "id",  util.get(options, "title", "unspecified"))
+    if type(action) == "string" then
+        local _ok, _ext = pcall(loadfile, action)
+        if not _ok then
+            ami_error("Failed to load extension from " .. path .. " - " .. (_ext or ""))
+        end
+        _id = action
+        action = _ext
     end
 
-    local _ok, _error = pcall(_ext, table.unpack(args))
+    local _ok, _result = pcall(action, table.unpack(args))
     if not _ok then
-        local _errMsg = "Execution of extension [" .. path .. "] failed - " .. (_error or "")
+        local _errMsg = "Execution of extension [" .. _id .. "] failed - " .. (tostring(_result) or "")
         if type(options.errorMsg) == "string" then
             _errMsg = options.errorMsg
         elseif type(options.partialErrorMsg) == "string" then
-            _errMsg = options.partialErrorMsg .. " - " .. _error
+            _errMsg = options.partialErrorMsg .. " - " .. tostring(_result)
         end
         ami_error(_errMsg)
     end
     AMI_CONTEXT_FAIL_EXIT_CODE = _pastCtxExitCode
+    return _result
 end
 
 return {
-    extension = _exec_extension,
     external_action = _exec_external_action,
     native_action = _exec_native_action
 }

@@ -81,6 +81,7 @@ _test["process cli (native)"] = function()
 
     local _argList = {"test", "testResult"}
     local _ok, _result = pcall(am.execute, _cli, _argList)
+
     _test.assert(_ok)
     _test.assert(_result == "testResult")
 
@@ -90,6 +91,77 @@ _test["process cli (native)"] = function()
         commands = {
             test = {
                 action = "tests/assets/cli/test_native.lua",
+                description = "test cli test command",
+                options = {
+                    value = {
+                        aliases = {"v"},
+                        description = "result to return"
+                    }
+                },
+                commands = {
+                    ["return"] = {
+                        description = "Returns result from option value"
+                    }
+                }
+            }
+        },
+        action = function(_, command, args, _)
+            if command then
+                return am.execute(command, args)
+            else
+                ami_error("No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
+            end
+        end
+    }
+
+    local _argList = {"test", "-v=testResult2", "return" }
+    local _ok, _result = pcall(am.execute, _cli, _argList)
+    _test.assert(_ok)
+    _test.assert(_result == "testResult2")
+    local _argList = { "test", "-v=testResult2" }
+    local _ok, _result = pcall(am.execute, _cli, _argList)
+    _test.assert(_ok)
+    _test.assert(_result == nil)
+
+    _cli = {
+        title = "test --help",
+        description = "test cli description",
+        commands = {
+            test = {
+                action = "tests/assets/cli/test_native.lua",
+                description = "test cli test command",
+                options = {
+                },
+                commands = {
+                    ["return"] = {
+                        description = "Returns result from option value"
+                    }
+                }
+            }
+        },
+        action = function(_, command, args, _)
+            if command then
+                return am.execute(command, args)
+            else
+                ami_error("No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
+            end
+        end
+    }
+
+    local _argList = {"test", "--help" }
+    local _ok, error = pcall(am.execute, _cli, _argList)
+    print(error)
+    _test.assert(_ok)
+end
+
+_test["process cli (extension)"] = function()
+    _cli = {
+        title = "test cli2",
+        description = "test cli description",
+        commands = {
+            test = {
+                action = "tests/assets/cli/test_extension.lua",
+                type = "extension",
                 description = "test cli test command",
                 options = {
                     value = {

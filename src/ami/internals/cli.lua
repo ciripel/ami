@@ -406,7 +406,7 @@ local function _process_cli(_cli, args)
         for _, v in ipairs(args) do
             table.insert(_rawArgs, v.arg)
         end
-        return _exec.native_action(action, _rawArgs)
+        return _exec.native_action(action, _rawArgs, _cli)
     end
 
     local optionList, command, remainingArgs = _parse_args(args, _cli)
@@ -423,11 +423,7 @@ local function _process_cli(_cli, args)
     if not _cli.customHelp and optionList.help then
         return _print_help(_cli)
     end
-
-    if _cli.type == "extension" then
-        return _exec.extension(action, { optionList, command, remainingArgs, _cli }, _cli)
-    end
-    return _exec.native_action(action, optionList, command, remainingArgs, _cli)
+    return _exec.native_action(action, { optionList, command, remainingArgs, _cli }, _cli)
 end
 
 return util.generate_safe_functions({

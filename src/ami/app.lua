@@ -173,11 +173,11 @@ end
 local function _get_type()
     if type(__APP.type) == "table" then
         local _result = __APP.type.id
-        if type(_APP.version) == "string" then 
+        if type(__APP.version) == "string" then 
             _result = _result .. "@" .. _version
         end
-        if type(_APP.repository) == "string" and _APP.repository ~= am.options.DEFAULT_REPOSITORY_URL then
-            _result = _result .. "[" .. _APP.repository .. "]"
+        if type(__APP.repository) == "string" and __APP.repository ~= am.options.DEFAULT_REPOSITORY_URL then
+            _result = _result .. "[" .. __APP.repository .. "]"
         end
         return _result
     end
