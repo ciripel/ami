@@ -57,7 +57,7 @@ _test["execute_extension"] = function()
                 type = "raw",
                 --  raw args
                 action = function(...)
-                    am.execute_extension("tests/assets/extensions/am_test_extension.lua", ...)
+                    am.execute_extension("tests/assets/extensions/am_test_extension.lua", {...})
                 end
             }
         },
@@ -70,7 +70,7 @@ _test["execute_extension"] = function()
     local _output
     local _originalPrint = print
     print = function(msg, msg2, msg3)
-        _output = msg .. msg2 .. msg3
+        _output = (msg or "") .. (msg2 or "") .. (msg3 or "")
     end
     am.execute("test", { "--test-option=randomOutput4", "aaa", "--bbb" })
     _test.assert(_output == "--test-option=randomOutput4aaa--bbb")
@@ -90,7 +90,7 @@ _test["execute_extension (failure)"] = function()
                 type = "raw",
                 --  raw args
                 action = function(...)
-                    am.execute_extension("tests/assets/extensions/am_test_extension_fail.lua", ..., { contextFailExitCode = 75 })
+                    am.execute_extension("tests/assets/extensions/am_test_extension_fail.lua", {...}, { contextFailExitCode = 75 })
                 end
             }
         },
@@ -131,7 +131,7 @@ _test["parse_args"] = function()
                 type = "raw",
                 --  raw args
                 action = function(...)
-                    am.execute_extension("tests/assets/extensions/am_test_extension.lua", ...)
+                    am.execute_extension("tests/assets/extensions/am_test_extension.lua", {...})
                 end
             }
         },
@@ -170,7 +170,7 @@ _test["print_help"] = function()
                 type = "raw",
                 --  raw args
                 action = function(...)
-                    am.execute_extension("tests/assets/extensions/am_test_extension.lua", ...)
+                    am.execute_extension("tests/assets/extensions/am_test_extension.lua", {...})
                 end
             }
         },
