@@ -41,6 +41,18 @@ _test["load specific cached version"] = function()
     _test.assert(_plugin.test() == "cached test plugin")
 end
 
+_test["load from local sources"] = function()
+    SOURCES = {
+        ["plugin.test"] = {
+            directory = "tests/assets/plugins/test"
+        }
+    }
+    am.plugin.__remove_cached("test", "0.0.1")
+    local _plugin = am.plugin.get("test", { version = "0.0.1" })
+    _test.assert(_plugin.test() == "cached test plugin")
+    SOURCES = nil
+end
+
 if not TEST then
     _test.summary()
 end
