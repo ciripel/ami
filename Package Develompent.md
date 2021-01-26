@@ -18,3 +18,8 @@ So for example if testing btc.base package (*sources.json*):
     "btc.binaries": "../packages/btc.binaries/src"
 }
 ```
+
+Then you just run ami commands as follows (we are assuming that you are in app directory and source.json is in its parent dir): 
+```sh
+ami --local-sources="../sources.json" setup
+```
