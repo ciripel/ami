@@ -52,7 +52,6 @@ am
 
 # INTERNALS
 am
-    .__interface        - AMI reference
     .__parse_base_args() - parses default args
     .__reload_interface() - updates AMI reference (above) from ami.lua
 
@@ -61,6 +60,8 @@ am
     
 # TEST_MODE:
 am
+    __set_interface(ami) - sets current am interface
+
     .app
         .__get() - returns internal __APP
         .__set() - sets internal __APP
