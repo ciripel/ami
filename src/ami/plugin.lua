@@ -71,12 +71,14 @@ local function _load_plugin(name, options)
     end
     log_trace("Plugin not loaded, loading...")
     local _loadDir
+    local _removeLoadDir = true
     local _entrypoint
 
     if type(SOURCES) == "table" and SOURCES["plugin."..name] then
         local _pluginDef = SOURCES["plugin."..name]
         _loadDir = util.get(_pluginDef, "directory")
-        ami_assert(_loadDir, "'directory' property has to be specified in case of plugin", EXIT_PKG_LOAD_ERROR)
+        ami_assert(_loadDir, "'directory' property as to be specified in case of plugin", EXIT_PKG_LOAD_ERROR)
+        _removeLoadDir = false
         _entrypoint = util.get(_pluginDef, "entrypoint", name .. ".lua")
         log_trace("Loading local plugin from path " .. _loadDir)
     else
@@ -144,7 +146,9 @@ local function _load_plugin(name, options)
         os.safe_chdir(_loadDir)
     end
     local _ok, _result = pcall(dofile, _entrypoint)
-    fs.safe_remove(_loadDir, { recurse = true })
+    if _removeLoadDir then
+        fs.safe_remove(_loadDir, { recurse = true })
+    end
     ami_assert(
         _ok,
         "Failed to require plugin: " .. _pluginId .. " - " .. (type(_result) == "string" and _result or ""),
