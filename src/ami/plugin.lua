@@ -65,70 +65,80 @@ local function _load_plugin(name, options)
         _version = options.version
     end
     local _pluginId = name .. "@" .. _version
-
     if type(PLUGIN_IN_MEM_CACHE[_pluginId]) == "table" then
         log_trace("Loading plugin from cache...")
         return PLUGIN_IN_MEM_CACHE[_pluginId]
     end
     log_trace("Plugin not loaded, loading...")
+    local _loadDir
+    local _entrypoint
 
-    local _pluginDefinition = _get_plugin_def(name, _version)
-    local _cachedArchivePath = path.combine(am.options.CACHE_PLUGIN_DIR_ARCHIVES, _pluginId)
-    local _downloadRequired = true
-    if fs.exists(_cachedArchivePath) then
-        log_trace("Plugin package found, verifying...")
-        local _ok, _hash = fs.safe_hash_file(_cachedArchivePath, {hex = true})
-        _downloadRequired = not _ok or _hash:lower() ~= _pluginDefinition.sha256:lower()
-        log_trace(
-            not _downloadRequired and "Plugin package verified..." or
-                "Plugin package verification failed, downloading... "
-        )
-    end
+    if type(SOURCES) == "table" and SOURCES["plugin."..name] then
+        local _pluginDef = SOURCES["plugin."..name]
+        _loadDir = util.get(_pluginDef, "directory")
+        ami_assert(_loadDir, "'directory' property has to be specified in case of plugin", EXIT_PKG_LOAD_ERROR)
+        _entrypoint = util.get(_pluginDef, "entrypoint", name .. ".lua")
+        log_trace("Loading local plugin from path " .. _loadDir)
+    else
+        local _pluginDefinition = _get_plugin_def(name, _version)
+        local _cachedArchivePath = path.combine(am.options.CACHE_PLUGIN_DIR_ARCHIVES, _pluginId)
+        local _downloadRequired = true
+        if fs.exists(_cachedArchivePath) then
+            log_trace("Plugin package found, verifying...")
+            local _ok, _hash = fs.safe_hash_file(_cachedArchivePath, {hex = true})
+            _downloadRequired = not _ok or _hash:lower() ~= _pluginDefinition.sha256:lower()
+            log_trace(
+                not _downloadRequired and "Plugin package verified..." or
+                    "Plugin package verification failed, downloading... "
+            )
+        end
 
-    if _downloadRequired then
-        local _ok = net.safe_download_file(_pluginDefinition.source, _cachedArchivePath, {followRedirects = true})
-        local _ok2, _hash = fs.safe_hash_file(_cachedArchivePath, {hex = true})
+        if _downloadRequired then
+            local _ok = net.safe_download_file(_pluginDefinition.source, _cachedArchivePath, {followRedirects = true})
+            local _ok2, _hash = fs.safe_hash_file(_cachedArchivePath, {hex = true})
+            ami_assert(
+                _ok and _ok2 and _hash:lower() == _pluginDefinition.sha256:lower(),
+                "Failed to verify package integrity - " .. _pluginId .. "!",
+                EXIT_PLUGIN_DOWNLOAD_ERROR
+            )
+        end
+
+        local tmpfile = os.tmpname()
+        os.remove(tmpfile)
+        _loadDir = tmpfile .. "_dir"
+
+        local _ok, _error = fs.safe_mkdirp(_loadDir)
         ami_assert(
-            _ok and _ok2 and _hash:lower() == _pluginDefinition.sha256:lower(),
-            "Failed to verify package integrity - " .. _pluginId .. "!",
-            EXIT_PLUGIN_DOWNLOAD_ERROR
+            _ok,
+            string.join_strings("", "Failed to create directory for plugin: ", _pluginId, " - ", _error),
+            EXIT_PLUGIN_LOAD_ERROR
         )
-    end
 
-    local tmpfile = os.tmpname()
-    os.remove(tmpfile)
-    local _loadDir = tmpfile .. "_dir"
+        local _ok, _error = zip.safe_extract(_cachedArchivePath, _loadDir, {flattenRootDir = true})
+        ami_assert(
+            _ok,
+            string.join_strings("", "Failed to extract plugin package: ", _pluginId, " - ", _error),
+            EXIT_PLUGIN_LOAD_ERROR
+        )
 
-    local _ok, _error = fs.safe_mkdirp(_loadDir)
-    ami_assert(
-        _ok,
-        string.join_strings("", "Failed to create directory for plugin: ", _pluginId, " - ", _error),
-        EXIT_PLUGIN_LOAD_ERROR
-    )
+        _entrypoint = name .. ".lua"
+        local _ok, _pluginSpecsJson = fs.safe_read_file(path.combine(_loadDir, "specs.json"))
+        if not _ok then
+            _ok, _pluginSpecsJson = fs.safe_read_file(path.combine(_loadDir, "specs.hjson"))
+        end
 
-    local _ok, _error = zip.safe_extract(_cachedArchivePath, _loadDir, {flattenRootDir = true})
-    ami_assert(
-        _ok,
-        string.join_strings("", "Failed to extract plugin package: ", _pluginId, " - ", _error),
-        EXIT_PLUGIN_LOAD_ERROR
-    )
-
-    local _entrypoint = name .. ".lua"
-    local _ok, _pluginSpecsJson = fs.safe_read_file(path.combine(_loadDir, "specs.json"))
-    if not _ok then
-        _ok, _pluginSpecsJson = fs.safe_read_file(path.combine(_loadDir, "specs.hjson"))
-    end
-
-    if _ok then
-        _ok, _pluginSpecs = hjson.safe_parse(_pluginSpecsJson)
-        if _ok and type(_pluginSpecs.entrypoint) == "string" then
-            _entrypoint = _pluginSpecs.entrypoint
+        if _ok then
+            _ok, _pluginSpecs = hjson.safe_parse(_pluginSpecsJson)
+            if _ok and type(_pluginSpecs.entrypoint) == "string" then
+                _entrypoint = _pluginSpec.entrypoint
+            end
         end
     end
 
     local _originalCwd = ""
 
     -- plugins used in non EPROC should be used compiled as single lue file. Requiring sub files from plugin dir wont be available.
+    -- NOTE: use amalg.lua
     if os.EOS then
         _originalCwd = os.cwd()
         os.safe_chdir(_loadDir)
