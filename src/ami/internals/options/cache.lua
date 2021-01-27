@@ -44,7 +44,7 @@ end
 local function _newindex_hook(t, k, v)
     if k == "CACHE_DIR" then
         if v == "false" then
-            rawset(t, CACHE_DISABLED, true)
+            rawset(t, "CACHE_DISABLED", true)
             v = ""
         end
         if not path.isabs(v) then
