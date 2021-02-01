@@ -178,8 +178,8 @@ local function _compare_args(t, a, b)
 end
 
 local function _generate_usage(cli, includeOptionsInUsage)
-    local hasCommands = cli.commands and #util.keys(cli.commands)
-    local hasOptions = cli.options and #util.keys(cli.options)
+    local hasCommands = cli.commands and #table.keys(cli.commands)
+    local hasOptions = cli.options and #table.keys(cli.options)
 
     local cliId = cli.__cliId or cli.id or path.file(APP_ROOT_SCRIPT or "")
     local usage = "Usage: " .. cliId .. " "
@@ -191,7 +191,7 @@ local function _generate_usage(cli, includeOptionsInUsage)
     end
 
     if hasOptions and includeOptionsInUsage then
-        local options = util.keys(cli.options)
+        local options = table.keys(cli.options)
         local sort_function = function(a, b)
             return _compare_args(cli.options, a, b)
         end
@@ -230,13 +230,13 @@ local function _generate_usage(cli, includeOptionsInUsage)
 end
 
 local function _generate_help_message(cli)
-    local hasCommands = cli.commands and #util.keys(cli.commands) and not _are_all_hidden(cli.commands)
-    local hasOptions = cli.options and #util.keys(cli.options) and not _are_all_hidden(cli.options)
+    local hasCommands = cli.commands and #table.keys(cli.commands) and not _are_all_hidden(cli.commands)
+    local hasOptions = cli.options and #table.keys(cli.options) and not _are_all_hidden(cli.options)
 
     local rows = {}
     if hasOptions then
         table.insert(rows, {left = "Options: ", description = ""})
-        local options = util.keys(cli.options)
+        local options = table.keys(cli.options)
         local sort_function = function(a, b)
             return _compare_args(cli.options, a, b)
         end
@@ -273,7 +273,7 @@ local function _generate_help_message(cli)
     if hasCommands then
         table.insert(rows, {left = "", description = ""})
         table.insert(rows, {left = "Commands: ", description = ""})
-        local commands = util.keys(cli.commands)
+        local commands = table.keys(cli.commands)
         local sort_function = function(a, b)
             return _compare_args(cli.commands, a, b)
         end

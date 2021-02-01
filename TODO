@@ -1,3 +1,0 @@
-# Eli
-* [ ] custom eli.path implementation with support for URLs
-* [ ] net.download_file - do not create file on failure 

@@ -44,7 +44,7 @@ _test["prepare app"] = function()
     os.chdir(_testDir)
 
     local _ok, error = pcall(am.app.prepare)
-    _test.assert(_ok)
+    _test.assert(_ok, error)
 
     os.chdir(_defaultCwd)
 end

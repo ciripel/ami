@@ -18,7 +18,7 @@ local function __get_app(app)
 end
 
 local function _get(path, default)
-    return util.get(__APP, path, default)
+    return table.get(__APP, path, default)
 end
 
 local function _get_config(path, default)
@@ -30,7 +30,7 @@ local function _get_config(path, default)
             return _result
         end
     end
-    return util.get(__APP, path, default)
+    return table.get(__APP, path, default)
 end
 
 local function _get_model(path, default)
@@ -40,7 +40,7 @@ local function _get_model(path, default)
         end
         return __model
     end
-    return util.get(__model, path, default)
+    return table.get(__model, path, default)
 end
 
 local function _set_model(value, path, options)
@@ -59,11 +59,11 @@ local function _set_model(value, path, options)
             __model = value
         end
     else
-        local _original = util.get(__model, path)
+        local _original = table.get(__model, path)
         if options.merge and type(_original) == "table" and type(value) == "table" then
             value = util.merge_tables(_original, __model, options.overwrite)
         end
-        util.set(__model, path, value)
+        table.set(__model, path, value)
     end
 end
 

@@ -91,7 +91,9 @@ local function _get_pkg(pkgDef)
     end
 
     local _ok, _error = net.safe_download_file(pkgDef.source, _cachedPkgPath, {followRedirects = true})
-    ami_assert(_ok, "Failed to get package " .. (_error or "") .. " - " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
+    if not _ok then
+        ami_error(_ok, "Failed to get package " .. _error .. " - " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
+    end
     local _ok, _hash = fs.safe_hash_file(_cachedPkgPath, {hex = true})
     ami_assert(_ok and _hash == pkgDef.sha256, "Failed to verify package integrity - " .. pkgDef.sha256 .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)
     log_trace("Integrity checks of " .. pkgDef.sha256 .. " successful.")
@@ -181,7 +183,7 @@ local function _prepare_pkg(appType)
     end
 
     local _modelFound = false
-    for _, file in ipairs(util.filter_table(files, _filter)) do
+    for _, file in ipairs(table.filter(files, _filter)) do
         -- assign file source
         if file == "model.lua" then
             _modelFound = true

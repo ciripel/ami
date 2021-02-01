@@ -43,7 +43,7 @@ function _new(options)
             },
             -- (options, command, args, cli)
             action = function(_options)
-                local _noOptions = #util.keys(_options) == 0
+                local _noOptions = #table.keys(_options) == 0
 
                 local _subAmiLoaded = false
                 if _noOptions or _options.environment then

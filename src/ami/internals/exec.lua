@@ -47,7 +47,7 @@ local function _exec_native_action(action, args, options)
     end
     local _pastCtxExitCode = AMI_CONTEXT_FAIL_EXIT_CODE
     AMI_CONTEXT_FAIL_EXIT_CODE = options.contextFailExitCode
-    local _id = util.get(options, "id",  util.get(options, "title", "unspecified"))
+    local _id = table.get(options, "id",  table.get(options, "title", "unspecified"))
     if type(action) == "string" then
         local _ok, _ext = pcall(loadfile, action)
         if not _ok then

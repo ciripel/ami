@@ -5,7 +5,7 @@ local function _to_renderable_data(source)
    for key, value in pairs(source) do
       _result[key] = value
       if type(value) == "table" and not util.is_array(value) then
-         _result[key .. "__ARRAY"] = util.to_array(value)
+         _result[key .. "__ARRAY"] = table.to_array(value)
       end
 
       if type(key) == "string" and key:lower():match("args") and util.is_array(value) then

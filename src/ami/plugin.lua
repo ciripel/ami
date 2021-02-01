@@ -76,10 +76,10 @@ local function _load_plugin(name, options)
 
     if type(SOURCES) == "table" and SOURCES["plugin."..name] then
         local _pluginDef = SOURCES["plugin."..name]
-        _loadDir = util.get(_pluginDef, "directory")
+        _loadDir = table.get(_pluginDef, "directory")
         ami_assert(_loadDir, "'directory' property as to be specified in case of plugin", EXIT_PKG_LOAD_ERROR)
         _removeLoadDir = false
-        _entrypoint = util.get(_pluginDef, "entrypoint", name .. ".lua")
+        _entrypoint = table.get(_pluginDef, "entrypoint", name .. ".lua")
         log_trace("Loading local plugin from path " .. _loadDir)
     else
         local _pluginDefinition = _get_plugin_def(name, _version)

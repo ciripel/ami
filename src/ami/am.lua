@@ -10,7 +10,7 @@ local function _execute(cmd, args)
         args = cmd
         cmd = _am.__interface
     end
-    if type(cmd) == "string" and type(util.get(_am, { "__interface", "commands" })) == "table" then
+    if type(cmd) == "string" and type(_am:get({ "__interface", "commands" })) == "table" then
         cmd = _am.__interface.commands[cmd]
     end
     ami_assert(type(cmd) == "table", "No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
