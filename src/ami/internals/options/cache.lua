@@ -45,7 +45,10 @@ local function _newindex_hook(t, k, v)
     if k == "CACHE_DIR" then
         if v == "false" then
             rawset(t, "CACHE_DISABLED", true)
-            v = ""
+            v = package.config:sub(1,1) == '/' and "/tmp/" or '%TEMP%'
+            if not fs.exists(v) then
+                v = ".cache" -- fallback to current dir with .cache prefix
+            end
         end
         if not path.isabs(v) then
             v = path.combine(os.EOS and os.cwd() or ".", v)

@@ -21,7 +21,7 @@ local function _download_pkg_def(appType, channel)
     -- e.g.: test.app@latest_beta
     local _defLocalPath = path.combine(am.options.CACHE_DIR_DEFS, appType.id .. "@" .. appType.version .. _channel)
 
-    if CACHE_DISABLED ~= true then
+    if am.options.CACHE_DISABLED ~= true then
         local _ok, _pkgDefJson = fs.safe_read_file(_defLocalPath)
         if _ok then
             local _ok, _pkgDef = hjson.safe_parse(_pkgDefJson)
@@ -44,7 +44,7 @@ local function _download_pkg_def(appType, channel)
         return _ok, "Failed to parse package definition - " .. appType.id .. " - " .. _defLocalPath, EXIT_PKG_INVALID_DEFINITION
     end
 
-    if CACHE_DISABLED ~= true then
+    if am.options.CACHE_DISABLED ~= true then
         local _cachedDef = util.merge_tables(_pkgDef, {lastAmiCheck = os.time()})
         local _ok, _pkgDefJson = hjson.safe_stringify(_cachedDef)
         _ok = _ok and fs.safe_write_file(_defLocalPath, _pkgDefJson)
@@ -77,7 +77,7 @@ end
 local function _get_pkg(pkgDef)
     local _cachedPkgPath = path.combine(am.options.CACHE_DIR_ARCHIVES, pkgDef.sha256)
 
-    if CACHE_DISABLED ~= true then
+    if am.options.CACHE_DISABLED ~= true then
         if am.options.NO_INTEGRITY_CHECKS ~= true then
             local _ok, _hash = fs.safe_hash_file(_cachedPkgPath, {hex = true})
             if _ok and _hash == pkgDef.sha256 then
@@ -92,7 +92,7 @@ local function _get_pkg(pkgDef)
 
     local _ok, _error = net.safe_download_file(pkgDef.source, _cachedPkgPath, {followRedirects = true})
     if not _ok then
-        ami_error(_ok, "Failed to get package " .. _error .. " - " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
+        ami_error("Failed to get package " .. _error .. " - " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
     end
     local _ok, _hash = fs.safe_hash_file(_cachedPkgPath, {hex = true})
     ami_assert(_ok and _hash == pkgDef.sha256, "Failed to verify package integrity - " .. pkgDef.sha256 .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)

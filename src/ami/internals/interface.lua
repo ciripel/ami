@@ -7,34 +7,36 @@ local function _new(kind, ...)
     return _kindMap[kind].new(...)
 end
 
-local function _load_interface(interfaceKind)
+local function _load_interface(interfaceKind, shallow)
     log_trace("Loading app specific ami...")
-    local _ok, _subAmiContent = fs.safe_read_file("ami.json")
-    if _ok then
-        log_trace("ami.json found loading...")
-        _ok, _subAmi = pcall(hjson.parse, _subAmiContent)
-        log_trace("ami.json load " .. (_ok and "successful" or "failed") .. "...")
-    end
-
-    if not _ok then
-        _ok, _subAmiContent = fs.safe_read_file("ami.hjson")
+    if not shallow then
+        local _ok, _subAmiContent = fs.safe_read_file("ami.json")
         if _ok then
-            log_trace("ami.hjson found loading...")
+            log_trace("ami.json found loading...")
             _ok, _subAmi = pcall(hjson.parse, _subAmiContent)
-            log_trace("ami.hjson load " .. (_ok and "successful" or "failed") .. "...")
+            log_trace("ami.json load " .. (_ok and "successful" or "failed") .. "...")
         end
-    end
 
-    if not _ok then
-        _ok, _subAmiContent = fs.safe_read_file("ami.lua")
-        if _ok then
-            log_trace("ami.lua found loading...")
-            _, _subAmi = pcall(load, _subAmiContent)
-            _ok, _subAmi = pcall(_subAmi)
+        if not _ok then
+            _ok, _subAmiContent = fs.safe_read_file("ami.hjson")
             if _ok then
-                log_trace("ami.lua load successful...")
-            else
-                log_trace("ami.lua load failed - " .. _subAmi)
+                log_trace("ami.hjson found loading...")
+                _ok, _subAmi = pcall(hjson.parse, _subAmiContent)
+                log_trace("ami.hjson load " .. (_ok and "successful" or "failed") .. "...")
+            end
+        end
+
+        if not _ok then
+            _ok, _subAmiContent = fs.safe_read_file("ami.lua")
+            if _ok then
+                log_trace("ami.lua found loading...")
+                _, _subAmi = pcall(load, _subAmiContent)
+                _ok, _subAmi = pcall(_subAmi)
+                if _ok then
+                    log_trace("ami.lua load successful...")
+                else
+                    log_trace("ami.lua load failed - " .. _subAmi)
+                end
             end
         end
     end
@@ -51,7 +53,7 @@ local function _load_interface(interfaceKind)
 
     local _id = _baseInterface.id
     local _title = string.join_strings(" - ", _baseInterface.title, _subAmi.title)
-
+    
     local _result = util.merge_tables(_baseInterface, _subAmi, true)
     _result.id = _id
     _result.title = _title

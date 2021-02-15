@@ -34,6 +34,10 @@ if _parsedOptions["cache-timeout"] then
     am.options.CACHE_EXPIRATION_TIME = _parsedOptions["cache-timeout"]
 end
 
+if _parsedOptions["shallow"] then
+    am.options.SHALLOW = true
+end
+
 if _parsedOptions["output-format"] then
     GLOBAL_LOGGER.options.format = _parsedOptions["output-format"]
     log_debug("Log format set to '" .. _parsedOptions["output-format"] .. "'.")
@@ -68,6 +72,6 @@ if type(am.options.APP_CONFIGURATION_PATH) ~= "string" then
 end
 
 am.app.load_config()
+am.__reload_interface(am.options.SHALLOW)
 
-am.__reload_interface()
 am.execute({...})

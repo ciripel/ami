@@ -1,6 +1,6 @@
 local _cli = require"ami.internals.cli"
 local _exec = require"ami.internals.exec"
-local _inteface = require"ami.internals.interface"
+local _interface = require"ami.internals.interface"
 
 local _amiArgs = {}
 local _am
@@ -10,7 +10,7 @@ local function _execute(cmd, args)
         args = cmd
         cmd = _am.__interface
     end
-    if type(cmd) == "string" and type(_am:get({ "__interface", "commands" })) == "table" then
+    if type(cmd) == "string" and type(table.get(_am,{ "__interface", "commands" })) == "table" then
         cmd = _am.__interface.commands[cmd]
     end
     ami_assert(type(cmd) == "table", "No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
@@ -37,7 +37,7 @@ local function __parse_base_args(args, options)
     if type(options) ~= "table" then
         options = { stopOnCommand = true }
     end
-    return _parse_args(_inteface.new("base"), args, options)
+    return _parse_args(_interface.new("base"), args, options)
 end
 
 local function _print_help(cmd, options)
@@ -50,9 +50,9 @@ local function _print_help(cmd, options)
     return _cli.print_help(cmd, options)
 end
 
-local function __reload_interface()
-    local _isAppSpecific, _interface = _inteface.load(_am.options.BASE_INTERFACE)
-    _am.__interface = _interface
+local function __reload_interface(shallow)
+    local _isAppSpecific, _amiInterface = _interface.load(_am.options.BASE_INTERFACE, shallow)
+    _am.__interface = _amiInterface
     return _isAppSpecific
 end
 

@@ -64,6 +64,12 @@ function _new()
                 aliases = {"h"},
                 description = "Prints this help message"
             },
+            shallow = {
+                index = 98,
+                type = "boolean",
+                description = "Prevents looking up and reloading app specific interface.",
+                hidden = true -- this is non standard option
+            },
             base = {
                 index = 99,
                 aliases = {"b"},

@@ -4,6 +4,8 @@ local _amiTpl = require "ami.internals.tpl"
 local __APP = {}
 local __model = {}
 local __loaded = false
+local __modelLoaded = false
+local __configLoaded = false
 
 local function _is_loaded()
     return __loaded
@@ -30,10 +32,24 @@ local function _get_config(path, default)
             return _result
         end
     end
-    return table.get(__APP, path, default)
+    return table.get(__APP.configuration or __APP.config, path, default)
+end
+
+local function _load_model()
+    local _path = "model.lua"
+    log_trace("Loading application model...")
+    if fs.exists(_path) then
+        __modelLoaded = true
+        local _ok, _error = pcall(dofile, _path)
+        if not _ok then
+            __modelLoaded = false
+            ami_error("Failed to load app model - " .. _error, EXIT_APP_INVALID_MODEL)
+        end
+    end
 end
 
 local function _get_model(path, default)
+    if not __modelLoaded then _load_model() end
     if path == nil then
         if __model == nil then
             return default
@@ -44,6 +60,8 @@ local function _get_model(path, default)
 end
 
 local function _set_model(value, path, options)
+    if not __modelLoaded then _load_model() end
+
     if type(path) == "table" and not util.is_array(path) then
         options = path
         path = nil
@@ -64,16 +82,6 @@ local function _set_model(value, path, options)
             value = util.merge_tables(_original, __model, options.overwrite)
         end
         table.set(__model, path, value)
-    end
-end
-
-local function _compile_mdl()
-    local _path = "model.lua"
-    if fs.exists(_path) then
-        local _ok, _error = pcall(dofile, "model.lua")
-        if not _ok then
-            ami_error("Failed to load app model - " .. _error, EXIT_APP_INVALID_MODEL)
-        end
     end
 end
 
@@ -113,9 +121,6 @@ local function _load_config()
         if not _ok then
             ami_error("Failed to load app.json - " .. __APP, EXIT_INVALID_CONFIGURATION)
         end
-        log_trace("Compiling application model...")
-        _compile_mdl()
-
         __APP = hjson.parse(_configContent)
         _normalize_app_pkg_type(__APP)
         __loaded = true
@@ -213,6 +218,7 @@ end
 
 return util.generate_safe_functions({
     load_config = _load_config,
+    load_model = _load_model,
     prepare = _prepare_app,
     render = _amiTpl.render_templates,
     get_version = _get_app_version,
