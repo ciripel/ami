@@ -27,6 +27,7 @@ am
 
     .app
         .load_config()
+        .load_model()
         .prepare()
         .render()
         .get_version()
