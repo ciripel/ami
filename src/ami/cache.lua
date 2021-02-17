@@ -9,8 +9,8 @@ local function _cleanup_plugin_cache()
 end
 
 local function _cleanup_cache()
-    cleanup_pkg_cache()
-    cleanup_plugin_cache()
+    _cleanup_pkg_cache()
+    _cleanup_plugin_cache()
 end
 
 return util.generate_safe_functions({

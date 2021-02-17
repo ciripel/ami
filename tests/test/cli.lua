@@ -1,6 +1,6 @@
 local _test = TEST or require "tests.vendor.u-test"
 
-require"tests.test_init"
+require"tests.test_init"()
 
 --[[require "src.ami.exit_codes"
 require "src.ami.cli"

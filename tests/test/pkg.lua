@@ -1,6 +1,6 @@
 local _test = TEST or require "tests.vendor.u-test"
 
-require"tests.test_init"
+require"tests.test_init"()
 
 local stringify = require "hjson".stringify
 
@@ -78,11 +78,9 @@ _test["prepare pkg from local cache"] = function()
     _test.assert(_fileList["__test/assets/test.template.txt"].id == "test.app")
     _test.assert(_fileList["__test/assets/test2.template.txt"].id == "test.base2")
     -- model check
-    local _testBase2PkgHash = _fileList["__test/assets/test2.template.txt"].source
-    local _testAppPkgHash = _fileList["__test/assets/test.template.txt"].source
-    _test.assert(_modelInfo.model.source == "65788b2ae41c3a7bcda1676746836812d56730cb33a61359eaa23cae22c291d8")
-    _test.assert(_modelInfo.extensions[1].source == "485d658a281755241eb3d03cd4869c470fb21c6b4aa443ba9f6f04b4963d64f6")
-    _test.assert(_modelInfo.extensions[2].source == "72994febe9b868e655b884a9bda1a434218c318367e9fbcada4e2e13ae166a4c")
+    _test.assert(_modelInfo.model.source == "33e4e7e3f2e8d0651ff498036cc2098910a950f9b3eed55aa26b9d95d75338d0")
+    _test.assert(_modelInfo.extensions[1].source == "1e05f3895e0bbfe9c3e4608abb9d5366ff64e93e78e6217a69cc875390e71d7f")
+    _test.assert(_modelInfo.extensions[2].source == "e27b66bfb87d15fa4419a27435e883de65e7ff9c49c26b833381cadae9ef2853")
     -- version tree check
     _test.assert(#_verTree.dependencies == 2)
     _test.assert(_verTree.dependencies[1].id == "test.base")
@@ -137,8 +135,8 @@ _test["prepare specific pkg from local cache"] = function()
     local _testBase2PkgHash = _fileList["__test/assets/test2.template.txt"].source
     local _testAppPkgHash = _fileList["__test/assets/test.template.txt"].source
 
-    _test.assert(_modelInfo.model.source == "65788b2ae41c3a7bcda1676746836812d56730cb33a61359eaa23cae22c291d8")
-    _test.assert(_modelInfo.extensions[1].source == "485d658a281755241eb3d03cd4869c470fb21c6b4aa443ba9f6f04b4963d64f6")
+    _test.assert(_modelInfo.model.source == "33e4e7e3f2e8d0651ff498036cc2098910a950f9b3eed55aa26b9d95d75338d0")
+    _test.assert(_modelInfo.extensions[1].source == "1e05f3895e0bbfe9c3e4608abb9d5366ff64e93e78e6217a69cc875390e71d7f")
     _test.assert(_modelInfo.extensions[2].source == "d0b5a56925682c70f5e46d99798e16cb791081124af89c780ed40fb97ab589c5")
     -- version tree check
     _test.assert(#_verTree.dependencies == 2)
@@ -225,7 +223,7 @@ _test["unpack layers"] = function()
     local _ok, _test2Hash = fs.safe_hash_file(".ami-templates/__test/assets/test2.template.txt", {hex = true})
     _test.assert(_ok and _test2Hash == "172fb97f3321e9e3616ada32fb5f9202b3917f5adcf4b67957a098a847e2f12c")
     local _ok, _specsHash = fs.safe_hash_file("specs.json", {hex = true})
-    _test.assert(_ok and _specsHash == "b33728e988af86d73ee5586b351e90967ac56532cfcb04c57cf2a066dfcddee3")
+    _test.assert(_ok and _specsHash == "3aaa99ed2b16ed97e85d9fb7e0666986b230e5dcbe2e04e513b99e7f9dc8810a")
 
     os.chdir(_defaultCwd)
 end
@@ -249,7 +247,7 @@ _test["generate model"] = function()
     _test.assert(_result)
 
     local _ok, _modelHash = fs.safe_hash_file("model.lua", {hex = true})
-    _test.assert(_ok and _modelHash == "57eeac9afb5a605ddb9d41a81732cbc3705222c0850a85d23703ce1da8f6f69d") 
+    _test.assert(_ok and _modelHash == "58517f9f584336674cea455165cd9b1d7d8bccfc49bc7a1aad870e5d402aef9a") 
 
     os.chdir(_defaultCwd)
 end

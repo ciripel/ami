@@ -59,16 +59,20 @@ if _parsedOptions["base"] then
     am.options.BASE_INTERFACE = _parsedOptions["base"]
 end
 
-if type(am.options.APP_CONFIGURATION_PATH) ~= "string" then
-    -- we are working without app configuration, expose default options
-    if _parsedOptions.version then
-        print(am.VERSION)
-        os.exit(EXIT_INVALID_CONFIGURATION)
-    end
-    if _parsedOptions.about then
-        print(am.ABOUT)
-        os.exit(EXIT_INVALID_CONFIGURATION)
-    end
+
+-- expose default options
+if _parsedOptions.version then
+    print(am.VERSION)
+    os.exit(0)
+end
+if _parsedOptions.about then
+    print(am.ABOUT)
+    os.exit(0)
+end
+if _parsedOptions["erase-cache"] then
+    am.cache.erase()
+    log_success("Cache succesfully erased.")
+    os.exit(0)
 end
 
 am.app.load_config()

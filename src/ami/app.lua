@@ -5,7 +5,6 @@ local __APP = {}
 local __model = {}
 local __loaded = false
 local __modelLoaded = false
-local __configLoaded = false
 
 local function _is_loaded()
     return __loaded
@@ -14,8 +13,7 @@ end
 local function __set_app(app)
     __APP = app
 end
-
-local function __get_app(app)
+local function __get_app()
     return __APP
 end
 
@@ -24,43 +22,47 @@ local function _get(path, default)
 end
 
 local function _get_config(path, default)
-    if path == nil then
-        local _result = __APP.configuration or __APP.config
-        if _result == nil then
-            return default
-        else
-            return _result
-        end
+    if path ~= nil then
+        return table.get(__APP.configuration or __APP.config, path, default)
     end
-    return table.get(__APP.configuration or __APP.config, path, default)
+    local _result = __APP.configuration or __APP.config
+    if _result == nil then
+        return default
+    end
+    return _result
 end
 
 local function _load_model()
     local _path = "model.lua"
     log_trace("Loading application model...")
-    if fs.exists(_path) then
-        __modelLoaded = true
-        local _ok, _error = pcall(dofile, _path)
-        if not _ok then
-            __modelLoaded = false
-            ami_error("Failed to load app model - " .. _error, EXIT_APP_INVALID_MODEL)
-        end
+    if not fs.exists(_path) then
+        return
+    end
+    __modelLoaded = true -- without this we would be caught in infinite recursion of loading model on demand
+    local _ok, _error = pcall(dofile, _path)
+    if not _ok then
+        __modelLoaded = false
+        ami_error("Failed to load app model - " .. _error, EXIT_APP_INVALID_MODEL)
     end
 end
 
 local function _get_model(path, default)
-    if not __modelLoaded then _load_model() end
-    if path == nil then
-        if __model == nil then
-            return default
-        end
-        return __model
+    if not __modelLoaded then
+        _load_model()
     end
-    return table.get(__model, path, default)
+    if path ~= nil then
+        return table.get(__model, path, default)
+    end
+    if __model == nil then
+        return default
+    end
+    return __model
 end
 
 local function _set_model(value, path, options)
-    if not __modelLoaded then _load_model() end
+    if not __modelLoaded then
+        _load_model()
+    end
 
     if type(path) == "table" and not util.is_array(path) then
         options = path
@@ -79,7 +81,7 @@ local function _set_model(value, path, options)
     else
         local _original = table.get(__model, path)
         if options.merge and type(_original) == "table" and type(value) == "table" then
-            value = util.merge_tables(_original, __model, options.overwrite)
+            value = util.merge_tables(_original, value, options.overwrite)
         end
         table.set(__model, path, value)
     end
@@ -116,17 +118,16 @@ local function _load_config()
         ami_error("Failed to locate app.h/json!", EXIT_INVALID_CONFIGURATION)
     end
     local _ok, _configContent = fs.safe_read_file(_configPath)
-    if _ok then
-        _ok, __APP = pcall(hjson.parse, _configContent)
-        if not _ok then
-            ami_error("Failed to load app.json - " .. __APP, EXIT_INVALID_CONFIGURATION)
-        end
-        __APP = hjson.parse(_configContent)
-        _normalize_app_pkg_type(__APP)
-        __loaded = true
-    else
+    if not _ok then
         ami_error("Failed to load app.h/json - " .. _configContent, EXIT_INVALID_CONFIGURATION)
     end
+    _ok, __APP = pcall(hjson.parse, _configContent)
+    if not _ok then
+        ami_error("Failed to parse app.h/json - " .. __APP, EXIT_INVALID_CONFIGURATION)
+    end
+    __APP = hjson.parse(_configContent)
+    _normalize_app_pkg_type(__APP)
+    __loaded = true
 end
 
 local function _prepare_app()
@@ -143,50 +144,49 @@ local function _is_update_available()
     _normalize_app_pkg_type(__APP)
 
     local _ok, _verTreeJson = fs.safe_read_file(".version-tree.json", hjson.stringify_to_json(_verTree))
-    local _verTree = {}
     if _ok then
-        _ok, _verTree = pcall(hjson.parse, _verTreeJson)
+        local _ok, _verTree = pcall(hjson.parse, _verTreeJson)
+        if _ok then
+            log_trace("Using .version-tree.json for update availability check.")
+            return _amiPkg.is_pkg_update_available(_verTree)
+        end
     end
-    if not _ok then
-        log_warn("Version tree not found. Running update check against specs...")
-        local _ok, _specsFile = fs.safe_read_file("specs.json")
-        ami_assert(_ok, "Failed to load app specs.json", EXIT_APP_UPDATE_ERROR)
-        local _ok, _specs = pcall(hjson.parse, _specsFile)
-        ami_assert(_ok, "Failed to parse app specs.json", EXIT_APP_UPDATE_ERROR)
-        return _amiPkg.is_pkg_update_available(__APP.type, _specs.version)
-    end
-    log_trace("Using .version-tree.json for update availability check.")
-    return _amiPkg.is_pkg_update_available(_verTree)
+
+    log_warn("Version tree not found. Running update check against specs...")
+    local _ok, _specsFile = fs.safe_read_file("specs.json")
+    ami_assert(_ok, "Failed to load app specs.json", EXIT_APP_UPDATE_ERROR)
+    local _ok, _specs = pcall(hjson.parse, _specsFile)
+    ami_assert(_ok, "Failed to parse app specs.json", EXIT_APP_UPDATE_ERROR)
+    return _amiPkg.is_pkg_update_available(__APP.type, _specs.version)
 end
 
 local function _get_app_version()
     _normalize_app_pkg_type(__APP)
 
     local _ok, _verTreeJson = fs.safe_read_file(".version-tree.json", hjson.stringify_to_json(_verTree))
-    local _verTree = {}
     if _ok then
-        _ok, _verTree = pcall(hjson.parse, _verTreeJson)
+        local _ok, _verTree = pcall(hjson.parse, _verTreeJson)
+        if _ok then
+            return _verTree.version
+        end
     end
-    if not _ok then
-        log_warn("Version tree not found. Can not get the version...")
-        return "unknown"
-    else
-        return _verTree.version
-    end
+    log_warn("Version tree not found. Can not get the version...")
+    return "unknown"
 end
 
 local function _get_type()
-    if type(__APP.type) == "table" then
-        local _result = __APP.type.id
-        if type(__APP.version) == "string" then 
-            _result = _result .. "@" .. _version
-        end
-        if type(__APP.repository) == "string" and __APP.repository ~= am.options.DEFAULT_REPOSITORY_URL then
-            _result = _result .. "[" .. __APP.repository .. "]"
-        end
-        return _result
+    if type(__APP.type) ~= "table" then
+        return __APP.type
     end
-    return __APP.type
+    -- we want to get app type nicely formatted
+    local _result = __APP.type.id
+    if type(__APP.version) == "string" then
+        _result = _result .. "@" .. _version
+    end
+    if type(__APP.repository) == "string" and __APP.repository ~= am.options.DEFAULT_REPOSITORY_URL then
+        _result = _result .. "[" .. __APP.repository .. "]"
+    end
+    return _result
 end
 
 local function _remove_app_data()
@@ -194,7 +194,7 @@ local function _remove_app_data()
     ami_assert(_ok, "Failed to remove app data - " .. tostring(_error) .. "!", EXIT_RM_DATA_ERROR)
 end
 
-local _get_protected_files = function ()
+local _get_protected_files = function()
     local _protectedFiles = {}
     for _, configCandidate in ipairs(am.options.APP_CONFIGURATION_CANDIDATES) do
         _protectedFiles[configCandidate] = true
@@ -216,21 +216,23 @@ local function _remove_app()
     end
 end
 
-return util.generate_safe_functions({
-    load_config = _load_config,
-    load_model = _load_model,
-    prepare = _prepare_app,
-    render = _amiTpl.render_templates,
-    get_version = _get_app_version,
-    is_update_available = _is_update_available,
-    remove_data = _remove_app_data,
-    remove = _remove_app,
-    get = _get,
-    get_config = _get_config,
-    get_model = _get_model,
-    get_type = _get_type,
-    set_model = _set_model,
-    __is_loaded = _is_loaded,
-    __set = TEST_MODE and __set_app,
-    __get = TEST_MODE and __get_app
-})
+return util.generate_safe_functions(
+    {
+        load_config = _load_config,
+        load_model = _load_model,
+        prepare = _prepare_app,
+        render = _amiTpl.render_templates,
+        get_version = _get_app_version,
+        is_update_available = _is_update_available,
+        remove_data = _remove_app_data,
+        remove = _remove_app,
+        get = _get,
+        get_config = _get_config,
+        get_model = _get_model,
+        get_type = _get_type,
+        set_model = _set_model,
+        __is_loaded = _is_loaded,
+        __set = TEST_MODE and __set_app,
+        __get = TEST_MODE and __get_app
+    }
+)

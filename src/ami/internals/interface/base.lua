@@ -36,33 +36,39 @@ function _new()
                 type = "number",
                 description = "Invalidation timeout of cached packages, definitions and plugins"
             },
-            ["no-integrity-checks"] = {
-                index = 6,
-                type = "boolean",
-                description = "Disables integrity checks",
-                hidden = true -- this is for debug purposes only, better to avoid
-            },
             ["local-sources"] = {
-                index = 7,
+                index = 6,
                 aliases = {"ls"},
                 type = "string",
                 description = "Path to h/json file with local sources definitions"
             },
             version = {
-                index = 8,
+                index = 7,
                 aliases = {"v"},
                 type = "boolean",
                 description = "Prints AMI version"
             },
             about = {
-                index = 9,
+                index = 8,
                 type = "boolean",
                 description = "Prints AMI about"
+            },
+            ["erase-cache"] = {
+                index = 50,
+                type = "boolean",
+                description = "Removes all plugins and packages from cache.",
             },
             help = {
                 index = 100,
                 aliases = {"h"},
                 description = "Prints this help message"
+            },
+            -- hidden
+            ["no-integrity-checks"] = {
+                index = 97,
+                type = "boolean",
+                description = "Disables integrity checks",
+                hidden = true -- this is for debug purposes only, better to avoid
             },
             shallow = {
                 index = 98,
@@ -79,16 +85,6 @@ function _new()
             }
         },
         action = function(_options, _command, _args)
-            if _options.version then
-                print(am.VERSION)
-                return
-            end
-
-            if _options.about then
-                print(am.ABOUT)
-                return
-            end
-
             am.execute(_command, _args)
         end
     }

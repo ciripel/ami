@@ -3,7 +3,7 @@
 
 local _testApp = TEST_APP or "test.app"
 local _test = TEST or require "tests.vendor.u-test"
-require"tests.test_init"
+require"tests.test_init"()
 
 local stringify = require "hjson".stringify
 
@@ -16,6 +16,25 @@ ami_error = function (msg)
     _errorCalled = true
     print(msg)
     error(msg)
+end
+
+_test["shallow"] = function()
+    local _testDir = "tests/tmp/ami_test_shallow"
+    fs.mkdirp(_testDir)
+    fs.remove(_testDir, {recurse = true, contentOnly = true})
+    local _ok = fs.safe_copy_file("tests/app/configs/ami_test_app@latest.hjson", path.combine(_testDir, "app.hjson"))
+    _test.assert(_ok)
+
+    local _originalPrint = print
+    local _printed = ""
+    print = function(v)
+        _printed = _printed .. v
+    end
+    _ami("--path=".._testDir, "-ll=info", "--cache=../../cache/2/", "--shallow", "--help")
+    _test.assert(_printed:find("AMI\n") == 1)
+    print = _originalPrint
+    os.chdir(_defaultCwd)
+    _test.assert(not _errorCalled)
 end
 
 _test["ami setup"] = function()
