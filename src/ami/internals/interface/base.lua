@@ -64,6 +64,14 @@ function _new()
                 description = "Prints this help message"
             },
             -- hidden
+            ["dry-run"] = {
+                index = 96,
+                type = "string",
+                description = [[Runs file in ami context with everything loaded but without reloading and executing through interface.
+                This is meant for single file/module testing.
+                ]],
+                hidden = true
+            },
             ["no-integrity-checks"] = {
                 index = 97,
                 type = "boolean",

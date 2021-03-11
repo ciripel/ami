@@ -76,6 +76,11 @@ if _parsedOptions["erase-cache"] then
 end
 
 am.app.load_config()
+if _parsedOptions["dry-run"] then
+    am.execute_extension(_parsedOptions["dry-run"], ...)
+    os.exit(0)
+end
+
 am.__reload_interface(am.options.SHALLOW)
 
 am.execute({...})
