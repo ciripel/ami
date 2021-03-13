@@ -18,3 +18,14 @@ To develop AMI based applications you do not need access to AIR repository nor i
 ### Notes
 
 `ami` packages local source as zip and copies it into cache to provide closest experience to using AIR repository. This will pollute your cache and you should clean it from time to time - it wont cause any issue, but it will take some space.
+
+### Single package extension testing
+
+You can test single ami extension (.lua) file with `--dry-run` and `--dry-run-config` options.
+
+`--dry-run` makes sure that ami loads all necessary information and ami api but won't continue in execution of app interface. Rather it loads and executes extension with path from first non option argument
+
+`--dry-run-config=<path or h/json string>` specifies configuration which you want to use
+- by default ami loads app.h/json. You can suppress this by using above option
+
+Example: `ami --dry-run --dry-run-config="{ type: test }" download-binaries.lua`
