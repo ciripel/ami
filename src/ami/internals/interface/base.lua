@@ -65,11 +65,18 @@ function _new()
             },
             -- hidden
             ["dry-run"] = {
-                index = 96,
-                type = "string",
-                description = [[Runs file in ami context with everything loaded but without reloading and executing through interface.
+                index = 95,
+                type = "boolean",
+                description = [[Runs file - first non option argument - in ami context with everything loaded but without reloading and executing through interface.
                 This is meant for single file/module testing.
                 ]],
+                hidden = true
+            },
+            ["dry-run-config"] = {
+                index = 96,
+                aliases = {"drc"},
+                type = "string",
+                description = [[Path to or h/json string of app.json which should be used during dry run testing]],
                 hidden = true
             },
             ["no-integrity-checks"] = {

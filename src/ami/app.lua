@@ -112,8 +112,8 @@ local function _get_configuration_path()
     return nil
 end
 
-local function _load_config()
-    local _configPath = _get_configuration_path()
+local function _load_config(path)
+    local _configPath = type(path) == "string" and path or _get_configuration_path()
     if _configPath == nil then
         ami_error("Failed to locate app.h/json!", EXIT_INVALID_CONFIGURATION)
     end

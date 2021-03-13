@@ -2,7 +2,7 @@
 elify() -- globalize eli libs
 require"ami.init"(...)
 
-local _parsedOptions = am.__parse_base_args({...})
+local _parsedOptions, _aaa, _remainingArgs = am.__parse_base_args({...})
 
 if _parsedOptions["local-sources"] then
     local _ok, _localPkgsFile = fs.safe_read_file(_parsedOptions["local-sources"])
@@ -75,10 +75,21 @@ if _parsedOptions["erase-cache"] then
     os.exit(0)
 end
 
-am.app.load_config()
 if _parsedOptions["dry-run"] then
-    am.execute_extension(_parsedOptions["dry-run"], ...)
+    if _parsedOptions["dry-run-model"] then
+        local _ok, _appConfig = hjson.safe_parse(_parsedOptions["dry-run-config"])
+        if _ok then -- model is valid json
+            am.app.__set_app(_appConfig)
+        else -- model is not valid json fallback to path
+            am.app.load_config(_parsedOptions["dry-run-config"])
+        end
+    end
+    am.execute_extension(_remainingArgs[1].value, ...)
     os.exit(0)
+end
+
+if not am.app._is_loaded() then
+    am.app.load_config()
 end
 
 am.__reload_interface(am.options.SHALLOW)
