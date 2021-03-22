@@ -9,9 +9,10 @@ To develop AMI based applications you do not need access to AIR repository nor i
     *  Create directories for your layers e.g.: `mkdir -p ~/ami/etho.binaries ~/ami/etho.node`
 3. create source mapping for ami - `~/ami/sources.hjson`, for example:
 ```json
-    "etho.node": "~/ami/etho.node"
-    "etho.binaries": "~/ami/etho.binaries"
+    "etho.node": "/path/to/packages/etho.node/src"
+    "etho.binaries": "/path/to/packages/ami/etho.binaries/src"
 ```
+*HINT: Do not use path with `~`.*
 4. Run ami with `--local-sources` (It is recommended to use `trace` log level for testing)
     * `ami --local-source=~/ami/sources.hjson -ll=trace <command>` 
 
