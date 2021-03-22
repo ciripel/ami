@@ -1,6 +1,6 @@
 local _kindMap = {
-    base = require"ami.internals.interface.base",
-    app = require"ami.internals.interface.app",
+    base = require "ami.internals.interface.base",
+    app = require "ami.internals.interface.app"
 }
 
 local function _new(kind, ...)
@@ -44,16 +44,21 @@ local function _load_interface(interfaceKind, shallow)
     local _baseInterface
 
     if type(_subAmi) ~= "table" then
-        _baseInterface  = _new(interfaceKind or "app", { isLoaded = false })
+        _baseInterface = _new(interfaceKind or "app", {isLoaded = false})
         log_trace("App specific ami not found...")
         return false, _baseInterface
     else
-        _baseInterface  = _new(_subAmi.kind or interfaceKind or "app", { isLoaded = true })
+        _baseInterface = _new(_subAmi.kind or interfaceKind or "app", {isLoaded = true})
     end
 
     local _id = _baseInterface.id
     local _title = string.join_strings(" - ", _baseInterface.title, _subAmi.title)
-    
+    --[[ // TODO: expose base
+        - recursively match and join interfaces
+        - configurable base property in each ami
+            - valua has to be type of string which is either key of cached ami
+              or path to ami within app directory structure e.g. base="__<type>/ami.lua"
+        ]]
     local _result = util.merge_tables(_baseInterface, _subAmi, true)
     _result.id = _id
     _result.title = _title
