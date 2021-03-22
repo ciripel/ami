@@ -68,9 +68,10 @@ local function _get_pkg_def(appType)
         local _ok, _pkgDefOrError, _exitCode = _download_pkg_def(appType, "")
         ami_assert(_ok, _pkgDefOrError, _exitCode)
         _pkgDef = _pkgDefOrError
-        return _ok, _pkgDef
     end
-    log_trace("Successfully parsed " .. appType.id .. " definition.")
+    if _ok then
+        log_trace("Successfully parsed " .. appType.id .. " definition.")
+    end
     return _ok, _pkgDef
 end
 
