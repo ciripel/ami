@@ -88,7 +88,7 @@ if _parsedOptions["dry-run"] then
     os.exit(0)
 end
 
-if not am.app._is_loaded() then
+if not am.app.__is_loaded() then
     am.app.load_config()
 end
 
