@@ -38,6 +38,9 @@ local function _exec_native_action(action, args, options)
     if type(action) ~= "string" and  type(action) ~= "function" then
         error("Unsupported action/extension type (" .. type(action) .. ")!")
     end
+    if type(args) ~= "table" then
+        args = {}
+    end
     if type(options) ~= "table" then
         if not util.is_array(args) then
             options = args
