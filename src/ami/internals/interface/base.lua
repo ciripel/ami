@@ -2,11 +2,8 @@ function _new()
     return {
         id = "ami",
         title = "AMI",
-        partial = false,
         commandRequired = false,
         includeOptionsInUsage = true,
-        commandsIndexed = true,
-        optionsIndexed = true,
         options = {
             path = {
                 index = 1,

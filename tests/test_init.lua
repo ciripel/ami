@@ -5,7 +5,7 @@ TEST_MODE = true
 
 local _packages = {
     "version-info", "ami.exit-codes", "ami.internals.util", "ami.internals.options.repository", "ami.internals.options.cache",
-    "ami.internals.options.init", "ami.internals.interface.base", "ami.internals.interface.app", "ami.options", "ami.internals.exec",
+    "ami.internals.options.init", "ami.internals.interface.empty", "ami.internals.interface.base", "ami.internals.interface.app", "ami.options", "ami.internals.exec",
     "ami.internals.cli", "ami.cache", "ami.internals.pkg", "ami.internals.tpl", "ami.app", "ami.plugin", "ami.internals.interface", 
     "ami.am", "ami.init"
 }

@@ -2,7 +2,7 @@
 elify() -- globalize eli libs
 require"ami.init"(...)
 
-local _parsedOptions, _aaa, _remainingArgs = am.__parse_base_args({...})
+local _parsedOptions, _, _remainingArgs = am.__parse_base_args({...})
 
 if _parsedOptions["local-sources"] then
     local _ok, _localPkgsFile = fs.safe_read_file(_parsedOptions["local-sources"])

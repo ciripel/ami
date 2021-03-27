@@ -10,6 +10,10 @@ local function _is_loaded()
     return __loaded
 end
 
+local function _set_loaded(value)
+    __loaded = value
+end
+
 local function __set_app(app)
     __APP = app
 end
@@ -218,7 +222,9 @@ end
 
 return util.generate_safe_functions(
     {
+        -- not yet decided whether get_config or get_configuration should persist
         load_config = _load_config,
+        load_configuration = _load_config,
         load_model = _load_model,
         prepare = _prepare_app,
         render = _amiTpl.render_templates,
@@ -227,12 +233,15 @@ return util.generate_safe_functions(
         remove_data = _remove_app_data,
         remove = _remove_app,
         get = _get,
+        -- not yet decided whether get_config or get_configuration should persist
         get_config = _get_config,
+        get_configuration = _get_config,
         get_model = _get_model,
         get_type = _get_type,
         set_model = _set_model,
         __is_loaded = _is_loaded,
         __set = TEST_MODE and __set_app,
-        __get = TEST_MODE and __get_app
+        __get = TEST_MODE and __get_app,
+        __set_loaded = TEST_MODE and _set_loaded
     }
 )
