@@ -1,5 +1,4 @@
 local _kindMap = {
-    empty = require "ami.internals.interface.empty",
     base = require "ami.internals.interface.base",
     app = require "ami.internals.interface.app"
 }
