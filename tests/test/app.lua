@@ -123,8 +123,6 @@ end
 
 _test["is update available"] = function()
     am.options.CACHE_DIR = "tests/cache/2"
-    APP = {}
-    APP_APP_CONFIGURATION_PATH = "app.json"
     local _testDir = "tests/app/app_update/1"
 
     os.chdir(_testDir)
@@ -135,8 +133,6 @@ end
 
 _test["is update available (updated already)"] = function()
     am.options.CACHE_DIR = "tests/cache/2"
-    APP = {}
-    APP_APP_CONFIGURATION_PATH = "app.json"
     local _testDir = "tests/app/app_update/2"
 
     os.chdir(_testDir)
@@ -147,8 +143,6 @@ end
 
 _test["is update available alternative channel"] = function()
     am.options.CACHE_DIR = "tests/cache/2"
-    APP = {}
-    APP_APP_CONFIGURATION_PATH = "app.json"
     local _testDir = "tests/app/app_update/3"
 
     os.chdir(_testDir)

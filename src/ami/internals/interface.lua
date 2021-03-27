@@ -1,10 +1,24 @@
 local _kindMap = {
+    empty = require "ami.internals.interface.empty",
     base = require "ami.internals.interface.base",
     app = require "ami.internals.interface.app"
 }
 
-local function _new(kind, ...)
-    return _kindMap[kind].new(...)
+local function _new(kind, options)
+    local _base = _kindMap[kind]
+    if _base ~= nil then
+        return _kindMap[kind].new(options)
+    end
+    -- try load from path if not cached
+    local _ok, _new_base = pcall(loadfile, kind)
+    ami_assert(_ok, "Base interface " .. (kind or "undefined") .. "not found!", EXIT_INVALID_AMI_BASE)
+    local _ok, _base = pcall(_new_base, options)
+    ami_assert(_ok, "Failed to load base interface - " .. (kind or "undefined") .. "!", EXIT_INVALID_AMI_BASE)
+    -- recursively match all nested interfaces
+    if type(_base.base) == "string" then
+        _base = util.merge_tables(_new(_base.base, options), _base, true)
+    end
+    return _base
 end
 
 local function _load_interface(interfaceKind, shallow)
@@ -48,17 +62,15 @@ local function _load_interface(interfaceKind, shallow)
         log_trace("App specific ami not found...")
         return false, _baseInterface
     else
-        _baseInterface = _new(_subAmi.kind or interfaceKind or "app", {isLoaded = true})
+        _baseInterface = _new(_subAmi.base or interfaceKind or "app", {isLoaded = true})
     end
 
     local _id = _baseInterface.id
-    local _title = string.join_strings(" - ", _baseInterface.title, _subAmi.title)
-    --[[ // TODO: expose base
-        - recursively match and join interfaces
-        - configurable base property in each ami
-            - valua has to be type of string which is either key of cached ami
-              or path to ami within app directory structure e.g. base="__<type>/ami.lua"
-        ]]
+    local _title = _subAmi.title
+    if _subAmi.customTitle ~= true then
+        _title = string.join_strings(" - ", "AMI", _subAmi.title)
+    end
+
     local _result = util.merge_tables(_baseInterface, _subAmi, true)
     _result.id = _id
     _result.title = _title
