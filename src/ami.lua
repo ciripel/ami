@@ -76,7 +76,7 @@ if _parsedOptions["erase-cache"] then
 end
 
 if _parsedOptions["dry-run"] then
-    if _parsedOptions["dry-run-model"] then
+    if _parsedOptions["dry-run-config"] then
         local _ok, _appConfig = hjson.safe_parse(_parsedOptions["dry-run-config"])
         if _ok then -- model is valid json
             am.app.__set_app(_appConfig)
