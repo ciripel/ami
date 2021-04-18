@@ -4,7 +4,7 @@ local function _normalize_pkg_type(pkgType)
     if pkgType.version == nil then
         pkgType.version = "latest"
     end
-    ami_assert(type(pkgType.version) == "string", "Invalid pkg version", EXIT_INVALID_PKG_VERSION)
+    ami_assert(type(pkgType.version) == "string", "Invalid pkg version", EXIT_PKG_INVALID_VERSION)
     if type(pkgType.repository) ~= "string" then
         pkgType.repository = am.options.DEFAULT_REPOSITORY_URL
     end
@@ -127,6 +127,7 @@ local function _prepare_pkg(appType)
     log_debug("Preparation of " .. appType.id .. " started ...")
     _normalize_pkg_type(appType)
 
+    local _ok
     local _pkgDef
     if type(SOURCES) == "table" and SOURCES[appType.id] then
         local _localSource = SOURCES[appType.id]
@@ -134,7 +135,7 @@ local function _prepare_pkg(appType)
         local _tmp = path.combine(am.options.CACHE_DIR_ARCHIVES, util.random_string(20))
         local _ok, _error = zip.safe_compress(_localSource, _tmp, {recurse = true, overwrite = true})
         ami_assert(_ok, "Failed to compress local source directory: " .. (_error or ""), EXIT_PKG_LOAD_ERROR)
-        _ok, _hash = fs.safe_hash_file(_tmp, {hex = true})
+        local _ok, _hash = fs.safe_hash_file(_tmp, {hex = true})
         ami_assert(_ok, "Failed to load package from local sources", EXIT_PKG_INTEGRITY_CHECK_ERROR)
         os.rename(_tmp, path.combine(am.options.CACHE_DIR_ARCHIVES, _hash))
         _pkgDef = {sha256 = _hash, id = "debug-dir-pkg"}

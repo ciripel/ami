@@ -244,7 +244,7 @@ local function _generate_help_message(cli)
 
         for _, k in ipairs(options) do
             local v = cli.options[k]
-            _aliases = ""
+            local _aliases = ""
             if v.aliases and v.aliases[1] then
                 for _, alias in ipairs(v.aliases) do
                     if #alias == 1 then
@@ -370,9 +370,6 @@ end
     @param {string{}} args
 ]]
 local function _process_cli(_cli, args)
-    if _cli == nil then
-        _cli = AMI
-    end
     ami_assert(type(_cli) == "table", "cli scheme not provided!", EXIT_CLI_SCHEME_MISSING)
 
     args = cli.parse_args(args)

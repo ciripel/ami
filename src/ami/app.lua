@@ -100,7 +100,7 @@ local function _normalize_app_pkg_type(pkg)
         }
     end
     local _type = __APP.type
-    ami_assert(type(_type) == "table", "Invalid pkg type!", EXIT_INVALID_PKG_TYPE)
+    ami_assert(type(_type) == "table", "Invalid pkg type!", EXIT_PKG_INVALID_TYPE)
     if type(_type.repository) ~= "string" then
         _type.repository = am.options.DEFAULT_REPOSITORY_URL
     end
@@ -147,7 +147,7 @@ end
 local function _is_update_available()
     _normalize_app_pkg_type(__APP)
 
-    local _ok, _verTreeJson = fs.safe_read_file(".version-tree.json", hjson.stringify_to_json(_verTree))
+    local _ok, _verTreeJson = fs.safe_read_file(".version-tree.json")
     if _ok then
         local _ok, _verTree = pcall(hjson.parse, _verTreeJson)
         if _ok then
@@ -167,7 +167,7 @@ end
 local function _get_app_version()
     _normalize_app_pkg_type(__APP)
 
-    local _ok, _verTreeJson = fs.safe_read_file(".version-tree.json", hjson.stringify_to_json(_verTree))
+    local _ok, _verTreeJson = fs.safe_read_file(".version-tree.json")
     if _ok then
         local _ok, _verTree = pcall(hjson.parse, _verTreeJson)
         if _ok then
@@ -185,7 +185,7 @@ local function _get_type()
     -- we want to get app type nicely formatted
     local _result = __APP.type.id
     if type(__APP.version) == "string" then
-        _result = _result .. "@" .. _version
+        _result = _result .. "@" .. __APP.version
     end
     if type(__APP.repository) == "string" and __APP.repository ~= am.options.DEFAULT_REPOSITORY_URL then
         _result = _result .. "[" .. __APP.repository .. "]"
@@ -194,7 +194,7 @@ local function _get_type()
 end
 
 local function _remove_app_data()
-    local _ok = fs.safe_remove("data", {recurse = true, contentOnly = true})
+    local _ok, _error = fs.safe_remove("data", {recurse = true, contentOnly = true})
     ami_assert(_ok, "Failed to remove app data - " .. tostring(_error) .. "!", EXIT_RM_DATA_ERROR)
 end
 
@@ -208,7 +208,7 @@ end
 
 local function _remove_app()
     local _ok, _files = fs.safe_read_dir(".", {recurse = true, returnFullPaths = true})
-    ami_assert(_ok, "Failed to remove app - " .. (_error or "") .. "!", EXIT_RM_ERROR)
+    ami_assert(_ok, "Failed to remove app - " .. (_files or "") .. "!", EXIT_RM_ERROR)
     local _protectedFiles = _get_protected_files()
     for i = 1, #_files do
         local _file = _files[i]

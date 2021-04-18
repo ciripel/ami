@@ -1,5 +1,4 @@
 #!/usr/sbin/eli
-elify() -- globalize eli libs
 require"ami.init"(...)
 
 local _parsedOptions, _, _remainingArgs = am.__parse_base_args({...})
@@ -15,7 +14,7 @@ end
 if _parsedOptions.path then
     if os.EOS then
         package.path = package.path .. ";" .. os.cwd() .. "/?.lua"
-        local _ok, _err = os.safe_chdir(_parsedOptions.path)
+        local _ok, _err = os.chdir(_parsedOptions.path)
         assert(_ok, _err)
     else
         log_error("Option 'path' provided, but chdir not supported.")

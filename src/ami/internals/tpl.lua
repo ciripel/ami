@@ -15,7 +15,7 @@ local function _to_renderable_data(source)
                table.insert(_args, _arg)
             end
          end
-         _result[key .. "__CLI_ARGS"] = exString.join(" ", table.unpack(_args))
+         _result[key .. "__CLI_ARGS"] = string.join(" ", table.unpack(_args))
       end
    end
    return _result

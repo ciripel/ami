@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global, lowercase-global
 local _testApp = TEST_APP or "test.app"
 local _test = TEST or require "tests.vendor.u-test"
 require"tests.test_init"()

@@ -1,4 +1,4 @@
-function _new()
+local function _new()
     return {
         id = "ami",
         title = "AMI",

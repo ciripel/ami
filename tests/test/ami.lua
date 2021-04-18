@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global, lowercase-global
 -- ami setup
 -- ami remove
 

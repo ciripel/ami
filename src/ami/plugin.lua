@@ -4,7 +4,8 @@ local PLUGIN_IN_MEM_CACHE = PLUGIN_IN_MEM_CACHE or {}
 
 local function _get_plugin_def(name, version)
     local _pluginId = name .. "@" .. version
-
+    
+    local _defUrl
     if version == "latest" then
         _defUrl = _util.append_to_url(am.options.DEFAULT_REPOSITORY_URL, "plugin", name, version .. ".json")
     else
@@ -130,9 +131,9 @@ local function _load_plugin(name, options)
         end
 
         if _ok then
-            _ok, _pluginSpecs = hjson.safe_parse(_pluginSpecsJson)
+            local _ok, _pluginSpecs = hjson.safe_parse(_pluginSpecsJson)
             if _ok and type(_pluginSpecs.entrypoint) == "string" then
-                _entrypoint = _pluginSpec.entrypoint
+                _entrypoint = _pluginSpecs.entrypoint
             end
         end
     end
@@ -143,7 +144,7 @@ local function _load_plugin(name, options)
     -- NOTE: use amalg.lua
     if os.EOS then
         _originalCwd = os.cwd()
-        os.safe_chdir(_loadDir)
+        os.chdir(_loadDir)
     end
     local _ok, _result = pcall(dofile, _entrypoint)
     if _removeLoadDir then
@@ -155,7 +156,7 @@ local function _load_plugin(name, options)
         EXIT_PLUGIN_LOAD_ERROR
     )
     if os.EOS then
-        local _ok = os.safe_chdir(_originalCwd)
+        local _ok = os.chdir(_originalCwd)
         ami_assert(_ok, "Failed to chdir after plugin load", EXIT_PLUGIN_LOAD_ERROR)
     end
     PLUGIN_IN_MEM_CACHE[_pluginId] = _result

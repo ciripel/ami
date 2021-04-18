@@ -10,9 +10,9 @@ local function _new(kind, options)
     end
     -- try load from path if not cached
     local _ok, _new_base = pcall(loadfile, kind)
-    ami_assert(_ok, "Base interface " .. (kind or "undefined") .. "not found!", EXIT_INVALID_AMI_BASE)
+    ami_assert(_ok, "Base interface " .. (kind or "undefined") .. "not found!", EXIT_INVALID_AMI_BASE_INTERFACE)
     local _ok, _base = pcall(_new_base, options)
-    ami_assert(_ok, "Failed to load base interface - " .. (kind or "undefined") .. "!", EXIT_INVALID_AMI_BASE)
+    ami_assert(_ok, "Failed to load base interface - " .. (kind or "undefined") .. "!", EXIT_INVALID_AMI_BASE_INTERFACE)
     -- recursively match all nested interfaces
     if type(_base.base) == "string" then
         _base = util.merge_tables(_new(_base.base, options), _base, true)
@@ -22,6 +22,7 @@ end
 
 local function _load_interface(interfaceKind, shallow)
     log_trace("Loading app specific ami...")
+    local _subAmi
     if not shallow then
         local _ok, _subAmiContent = fs.safe_read_file("ami.json")
         if _ok then

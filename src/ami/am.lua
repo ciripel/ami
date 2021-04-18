@@ -1,6 +1,7 @@
 local _cli = require"ami.internals.cli"
 local _exec = require"ami.internals.exec"
 local _interface = require"ami.internals.interface"
+local util = require "ami.src.ami.internals.util"
 
 local _amiArgs = {}
 local _am

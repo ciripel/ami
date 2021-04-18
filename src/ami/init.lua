@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global, lowercase-global
 require"ami.exit-codes"
 
 local function _init(...)

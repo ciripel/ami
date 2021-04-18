@@ -1,4 +1,4 @@
-elify()
+---@diagnostic disable: undefined-global, lowercase-global
 hjson = util.generate_safe_functions(require"hjson")
 
 TEST_MODE = true

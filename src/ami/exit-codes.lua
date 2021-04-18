@@ -1,3 +1,4 @@
+---@global
 local _exitCodes = {
     EXIT_SETUP_ERROR = 1,
     EXIT_NOT_INSTALLED = 2,
