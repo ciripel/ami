@@ -1,5 +1,7 @@
-local CACHE_DIR = nil
+---@type AmiOptionsPlugin
+local cacheOpts = {}
 
+local CACHE_DIR = nil
 local _options = {
     CACHE_EXPIRATION_TIME = 86400
 }
@@ -25,7 +27,7 @@ local _computed = {
     CACHE_PLUGIN_DIR_ARCHIVES = _get_plugin_cache_sub_dir("archive"),
 }
 
-local function _index_hook(t, k)
+function cacheOpts.index(t, k)
     if k == "CACHE_DIR" then
         return true, CACHE_DIR
     end
@@ -41,7 +43,7 @@ local function _index_hook(t, k)
     return false, nil
 end
 
-local function _newindex_hook(t, k, v)
+function cacheOpts.newindex(t, k, v)
     if k == "CACHE_DIR" then
         if v == "false" then
             rawset(t, "CACHE_DISABLED", true)
@@ -69,7 +71,4 @@ local function _newindex_hook(t, k, v)
     return false
 end
 
-return {
-    index = _index_hook,
-    newindex = _newindex_hook
-}
+return cacheOpts

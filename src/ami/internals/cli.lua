@@ -7,11 +7,12 @@ local HELP_OPTION = {
     description = "Prints this help message"
 }
 
---[[
-    Parses value into required type if possible.
-    @param {any} value
-    @param {string} _type
-]]
+local _amiCli = {}
+
+---Parses value into required type if possible.
+---@param value string
+---@param _type string
+---@return string
 local function _parse_value(value, _type)
     if type(value) ~= "string" then
         return value
@@ -59,11 +60,14 @@ local function _parse_value(value, _type)
     return _parse_fn(value)
 end
 
-local function _is_array_of_tables(args)
-    if not util.is_array(args) then
+---Returns true if value is array of tables
+---@param value any
+---@return boolean
+local function _is_array_of_tables(value)
+    if not util.is_array(value) then
         return false
     else
-        for _, v in ipairs(args) do
+        for _, v in ipairs(value) do
             if type(v) ~= "table" then
                 return false
             end
@@ -72,13 +76,60 @@ local function _is_array_of_tables(args)
     return true
 end
 
+---comment
+---@param t table
+---@param prefix string|nil
+local function _internal_print_table_deep(t, prefix)
+    if type(t) ~= "table" then
+       return
+    end
+    if prefix == nil then prefix = "\t" end
+    for k, v in pairs(t) do
+       if type(v) == "table" then
+          print(prefix .. k .. ":")
+          _internal_print_table_deep(v, prefix .. "\t")
+       else
+          print(prefix, k, v)
+       end
+    end
+ end
+ 
+ ---#DES 'util.print_table'
+ ---@param t table
+ ---@param deep boolean
+ local function _print_table(t, deep)
+    if type(t) ~= "table" then
+       return
+    end
+    for k, v in pairs(t) do
+       if deep and type(v) == "table" then
+          print(k .. ":")
+          _internal_print_table_deep(v)
+       else
+          print(k, v)
+       end
+ 
+    end
+ end
+
 --[[
     Generates optionList, parameterValues, command from args.
     @param {string{}} args
     @param {table{}} options
     @param {table{}} commands
 ]]
-local function _parse_args(args, scheme, options)
+---@class AmiParseArgsOptions
+---@field stopOnCommand boolean
+
+
+---#DES cli.parse_args
+---
+---Parses arguments in respect to cli scheme
+---@param args string[]|CliArg[]
+---@param scheme AmiCli
+---@param options AmiParseArgsOptions
+---@return table<string, string|number|boolean>, AmiCli|nil, CliArg[]
+function _amiCli.parse_args(args, scheme, options)
     if not _is_array_of_tables(args) then
         args = cli.parse_args(args)
     end
@@ -122,6 +173,7 @@ local function _parse_args(args, scheme, options)
             local _cliOptionDef = _cliOptionsMap[_arg.id]
             ami_assert(type(_cliOptionDef) == "table", "Unknown option - '" .. _arg.arg .. "'!", EXIT_CLI_OPTION_UNKNOWN)
             _cliOptionList[_cliOptionDef.id] = _parse_value(_arg.value, _cliOptionDef.type)
+            _lastIndex = i + 1
         else
             if not options.stopOnCommand then
                 _cliCmd = _cliCmdMap[_arg.arg]
@@ -138,10 +190,13 @@ local function _parse_args(args, scheme, options)
     return _cliOptionList, _cliCmd, _cliRemainingArgs
 end
 
---[[
-    Validates processed args, whether there are valid in given cli definition
-]]
-local function _default_validate_args(cli, optionList, command)
+---Default argument validation.
+---Validates processed args, whether there are valid in given cli definition
+---@param optionList table
+---@param command any
+---@param cli AmiCli
+---@return boolean, nil|string
+local function _default_validate_args(optionList, command, cli)
     local options = type(cli.options) == "table" and cli.options or {}
     --local commands = type(cli.commands) == "table" and cli.commands or {}
 
@@ -160,6 +215,9 @@ local function _default_validate_args(cli, optionList, command)
     return true
 end
 
+---Returns true if all values in table contains property hidden with value true
+---@param t table
+---@return boolean
 local function _are_all_hidden(t)
     for _, v in pairs(t) do
         if not v.hidden then
@@ -169,6 +227,11 @@ local function _are_all_hidden(t)
     return true
 end
 
+---Comparison function for arg/options sorting
+---@param t table
+---@param a number
+---@param b number
+---@return boolean
 local function _compare_args(t, a, b)
     if t[a].index and t[b].index then
         return t[a].index < t[b].index
@@ -177,11 +240,15 @@ local function _compare_args(t, a, b)
     end
 end
 
+---comment
+---@param cli ExecutableAmiCli
+---@param includeOptionsInUsage boolean
+---@return string
 local function _generate_usage(cli, includeOptionsInUsage)
     local hasCommands = cli.commands and #table.keys(cli.commands)
     local hasOptions = cli.options and #table.keys(cli.options)
 
-    local cliId = cli.__cliId or cli.id or path.file(APP_ROOT_SCRIPT or "")
+    local cliId = cli.__parentCliId or cli.id or path.file(APP_ROOT_SCRIPT or "")
     local usage = "Usage: " .. cliId .. " "
     local optionalBegin = "["
     local optionalEnd = "]"
@@ -305,23 +372,23 @@ local function _generate_help_message(cli)
     return msg
 end
 
---[[
-    Shows cli help
-]]
-local function _print_help(cli, options)
+---Prints help for specified
+---@param _ami ExecutableAmiCli
+---@param options any
+function _amiCli.print_help(_ami, options)
     if type(options) ~= "table" then
         options = {}
     end
-    local title = options.title or cli.title
-    local description = options.description or cli.description
-    local _summary = options.summary or cli.summary
+    local title = options.title or _ami.title
+    local description = options.description or _ami.description
+    local _summary = options.summary or _ami.summary
 
     local includeOptionsInUsage = nil
     if includeOptionsInUsage == nil and options.includeOptionsInUsage ~= nil then
         includeOptionsInUsage = options.includeOptionsInUsage
     end
-    if includeOptionsInUsage == nil and cli.includeOptionsInUsage ~= nil then
-        includeOptionsInUsage = cli.includeOptionsInUsage
+    if includeOptionsInUsage == nil and _ami.includeOptionsInUsage ~= nil then
+        includeOptionsInUsage = _ami.includeOptionsInUsage
     end
 
     if includeOptionsInUsage == nil then
@@ -335,13 +402,13 @@ local function _print_help(cli, options)
 
     local footer = options.footer
 
-    if type(cli.help_message) == "function" then
-        print(cli.help_message(cli))
-    elseif type(cli.help_message) == "string" then
-        print(cli.help_message)
+    if type(_ami.help_message) == "function" then
+        print(_ami.help_message(_ami))
+    elseif type(_ami.help_message) == "string" then
+        print(_ami.help_message)
     else
         if am.options.OUTPUT_FORMAT == "json" then
-            print(require "hjson".stringify(cli.commands, {invalidObjectsAsType = true, indent = false}))
+            print(require "hjson".stringify(_ami.commands, {invalidObjectsAsType = true, indent = false}))
         else
             -- collect and print help
             if type(title) == "string" then
@@ -354,9 +421,9 @@ local function _print_help(cli, options)
                 print("- " .. _summary .. _newLine)
             end
             if printUsage then
-                print(_generate_usage(cli, includeOptionsInUsage) .. _newLine)
+                print(_generate_usage(_ami, includeOptionsInUsage) .. _newLine)
             end
-            print(_generate_help_message(cli))
+            print(_generate_help_message(_ami))
             if type(footer) == "string" then
                 print(footer)
             end
@@ -364,23 +431,21 @@ local function _print_help(cli, options)
     end
 end
 
---[[
-    Executes __cli__ definitions based on the args
-    @param {table} cli
-    @param {string{}} args
-]]
-local function _process_cli(_cli, args)
-    ami_assert(type(_cli) == "table", "cli scheme not provided!", EXIT_CLI_SCHEME_MISSING)
+---Processes args passed to cli and executes appropriate operation
+---@param _ami ExecutableAmiCli
+---@param args string[]
+---@return any
+function _amiCli.process(_ami, args)
+    ami_assert(type(_ami) == "table", "cli scheme not provided!", EXIT_CLI_SCHEME_MISSING)
+    local _parsedArgs = cli.parse_args(args)
 
-    args = cli.parse_args(args)
+    local validate = type(_ami.validate) == "function" and _ami.validate or _default_validate_args
 
-    local validate = type(_cli.validate) == "function" and _cli.validate or _default_validate_args
+    local _cliId = _ami.id and "(" .. _ami.id .. ")" or ""
+    local action = _ami.action
 
-    local _cliId = _cli.id and "(" .. _cli.id .. ")" or ""
-    local action = _cli.action
-
-    if not action and _cli.type == "external" and type(_cli.exec) == "string" then
-        action = _cli.exec
+    if not action and _ami.type == "external" and type(_ami.exec) == "string" then
+        action = _ami.exec
     end
 
     ami_assert(
@@ -389,42 +454,40 @@ local function _process_cli(_cli, args)
         EXIT_CLI_ACTION_MISSING
     )
 
-    if _cli.type == "external" then
+    if _ami.type == "external" then
         ami_assert(
             type(action) == "string",
             "Action has to be string specifying path to external cli",
             EXIT_CLI_INVALID_DEFINITION
         )
-        return _exec.external_action(action, args, _cli.injectArgs)
+        return _exec.external_action(action, _parsedArgs, _ami.injectArgs)
     end
 
-    if _cli.type == "raw" then
+    if _ami.type == "raw" then
         local _rawArgs = {}
-        for _, v in ipairs(args) do
+        for _, v in ipairs(_parsedArgs) do
             table.insert(_rawArgs, v.arg)
         end
-        return _exec.native_action(action, _rawArgs, _cli)
+        return _exec.native_action(action, _rawArgs, _ami)
     end
 
-    local optionList, command, remainingArgs = _parse_args(args, _cli)
-
-    local _valid, _error = validate(_cli, optionList, command)
+    local optionList, command, remainingArgs = _amiCli.parse_args(_parsedArgs, _ami)
+    ---@type ExecutableAmiCli
+    local _executableCommand = command
+    
+    local _valid, _error = validate(optionList, _executableCommand, _ami)
     ami_assert(_valid, _error, EXIT_CLI_ARG_VALIDATION_ERROR)
 
-    if type(command) == "table" then
-        command.__cliId = _cli.__cliId or _cli.id
-        command.__commandStack = _cli.__commandStack or {}
-        table.insert(command.__commandStack, command and command.id)
+    if type(_executableCommand) == "table" then
+        _executableCommand.__parentCliId = _ami.__parentCliId or _ami.id
+        _executableCommand.__commandStack = _ami.__commandStack or {}
+        table.insert(_executableCommand.__commandStack, _executableCommand and _executableCommand.id)
     end
 
-    if not _cli.customHelp and optionList.help then
-        return _print_help(_cli)
+    if not _ami.customHelp and optionList.help then
+        return _amiCli.print_help(_ami)
     end
-    return _exec.native_action(action, { optionList, command, remainingArgs, _cli }, _cli)
+    return _exec.native_action(action, { optionList, _executableCommand, remainingArgs, _ami }, _ami)
 end
 
-return util.generate_safe_functions({
-    parse_args = _parse_args,
-    process = _process_cli,
-    print_help = _print_help
-})
+return _amiCli

@@ -1,10 +1,23 @@
-local _cacheOptionsHooks = require"ami.internals.options.cache"
-local _repositoryOptionsHooks = require"ami.internals.options.repository"
+local _cacheOptHooks = require"ami.internals.options.cache"
+local _repOptHooks = require"ami.internals.options.repository"
 
+---@alias AmiOptionsIndexHook fun(t: table, k: any): any
+---@alias AmiOptionsNewIndexHook fun(t: table, k: any, v:any): boolean
+
+---@class AmiOptionsPlugin
+---@field index fun(t: table, k: any): any
+---@field newindex fun(t: table, k: any, v:any): boolean
+
+---@type AmiOptionsIndexHook[]
 local _indexHooks = {}
+
+---@type AmiOptionsNewIndexHook[]
 local _newindexHooks = {}
 
-for _, v in ipairs({ _cacheOptionsHooks, _repositoryOptionsHooks }) do
+---@type AmiOptionsPlugin[]
+local optPlugins = { _cacheOptHooks, _repOptHooks }
+
+for _, v in ipairs(optPlugins) do
     if type(v) == "table" then
         if type(v.index) == "function" then
             table.insert(_indexHooks, v.index)
@@ -32,6 +45,9 @@ local _optionsMeta = {
     end
 }
 
+---Initializes options object
+---@param options table
+---@return table
 return function(options)
     setmetatable(options, _optionsMeta)
     return options

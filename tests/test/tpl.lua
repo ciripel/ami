@@ -1,6 +1,6 @@
 local _test = TEST or require "tests.vendor.u-test"
 
-require"tests.test_init"()
+require"tests.test_init"
 
 _test["template rendering"] = function()
     local _app = {

@@ -1,9 +1,13 @@
---[[
-    Executes external action - (os.execute)
-    @param {string} exec
-    @param {String{}} args
-]]
-local function _exec_external_action(exec, args, injectArgs)
+local exec = {}
+
+---#DES exec.external_action
+---
+---Executes external program with all arguments passed
+---@param cmd string
+---@param args CliArg[]
+---@param injectArgs string[]
+---@return integer
+function exec.external_action(cmd, args, injectArgs)
     local _args = {}
     if type(injectArgs) == "table" then
         for _, v in ipairs(injectArgs) do
@@ -20,21 +24,28 @@ local function _exec_external_action(exec, args, injectArgs)
         for _, v in ipairs(args) do
             execArgs = execArgs .. ' "' .. v.arg:gsub("\\", "\\\\"):gsub('"', '\\"') .. '"' -- add qouted string
         end
-        local _ok, _result = proc.safe_exec(exec .. " " .. execArgs)
+        local _ok, _result = proc.safe_exec(cmd .. " " .. execArgs)
         ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
         return _result.exitcode
     end
-    local _ok, _result = proc.safe_spawn(exec, _args, {wait = true, stdio = "ignore"})
+    local _ok, _result = proc.safe_spawn(cmd, _args, {wait = true, stdio = "ignore"})
     ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
     return _result.exitcode
 end
 
---[[
-    Executes native action - (lua file module)
-    @param {string} modulePath
-    @params {any{}} ...
-]]
-local function _exec_native_action(action, args, options)
+---@class ExecNativeActionOptions
+---@field contextFailExitCode number
+---@field errorMsg string|nil
+---@field partialErrorMsg string|nil
+
+---#DES exec.native_action
+---
+---Executes native action - (lua file module)
+---@param action string|function
+---@param args CliArg[]|string[]
+---@param options ExecNativeActionOptions
+---@return any
+function exec.native_action(action, args, options)
     if type(action) ~= "string" and  type(action) ~= "function" then
         error("Unsupported action/extension type (" .. type(action) .. ")!")
     end
@@ -74,7 +85,4 @@ local function _exec_native_action(action, args, options)
     return _result
 end
 
-return {
-    external_action = _exec_external_action,
-    native_action = _exec_native_action
-}
+return exec

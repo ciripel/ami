@@ -1,12 +1,13 @@
 #!/usr/sbin/eli
-require"ami.init"(...)
+require"am"
+am.__args = { ... }
 
 local _parsedOptions, _, _remainingArgs = am.__parse_base_args({...})
 
 if _parsedOptions["local-sources"] then
     local _ok, _localPkgsFile = fs.safe_read_file(_parsedOptions["local-sources"])
     ami_assert(_ok, "Failed to read local sources file " .. _parsedOptions["local-sources"], EXIT_INVALID_SOURCES_FILE)
-    local _ok, _sources = pcall(hjson.parse, _localPkgsFile)
+    local _ok, _sources = hjson.safe_parse(_localPkgsFile)
     ami_assert(_ok, "Failed to parse local sources file " .. _parsedOptions["local-sources"], EXIT_INVALID_SOURCES_FILE)
     SOURCES = _sources
 end
@@ -80,7 +81,7 @@ if _parsedOptions["dry-run"] then
         if _ok then -- model is valid json
             am.app.__set_app(_appConfig)
         else -- model is not valid json fallback to path
-            am.app.load_config(_parsedOptions["dry-run-config"])
+            am.app.load_configuration(_parsedOptions["dry-run-config"])
         end
     end
     am.execute_extension(_remainingArgs[1].value, ...)
@@ -88,7 +89,7 @@ if _parsedOptions["dry-run"] then
 end
 
 if not am.app.__is_loaded() then
-    am.app.load_config()
+    am.app.load_configuration()
 end
 
 am.__reload_interface(am.options.SHALLOW)

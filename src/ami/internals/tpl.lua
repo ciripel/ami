@@ -1,5 +1,10 @@
 local _lustache = require "lustache"
 
+local tpl = {}
+
+---Prepares data for rendering
+---@param source table
+---@return table
 local function _to_renderable_data(source)
    local _result = {}
    for key, value in pairs(source) do
@@ -21,7 +26,8 @@ local function _to_renderable_data(source)
    return _result
 end
 
-local function _render_templates()
+---Renders template files in app directory
+function tpl.render_templates()
    log_info("Generating app templated files...")
    local _ok, _templates = fs.safe_read_dir(".ami-templates", {recurse = true, asDirEntries = true})
    if not _ok or #_templates == 0 then
@@ -31,7 +37,7 @@ local function _render_templates()
 
    -- transform model and configuration table to renderable data ( __ARRAY, __CLI_ARGS)
    local _model = _to_renderable_data(am.app.get_model())
-   local _configuration = _to_renderable_data(am.app.get_config())
+   local _configuration = _to_renderable_data(am.app.get_configuration())
 
    local _vm = {
       configuration = _configuration,
@@ -65,6 +71,4 @@ local function _render_templates()
    end
 end
 
-return {
-   render_templates = _render_templates
-}
+return tpl

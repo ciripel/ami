@@ -1,0 +1,1 @@
+am.app.set_model({ DATA_DIR = "test" })

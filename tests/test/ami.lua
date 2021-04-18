@@ -4,12 +4,19 @@
 
 local _testApp = TEST_APP or "test.app"
 local _test = TEST or require "tests.vendor.u-test"
-require"tests.test_init"()
-
-local stringify = require "hjson".stringify
+require"tests.test_init"
 
 local _defaultCwd = os.cwd()
-local _ami = loadfile("src/ami.lua")
+local function _ami(...) 
+    am.app.__set_loaded(false)
+    am.__reset_options()
+
+    local _originalDir = os.cwd()
+    os.chdir("src")
+    local __ami = loadfile("ami.lua")
+    os.chdir(_originalDir)
+    __ami(...)
+end
 
 _errorCalled = false
 local _originalAmiErrorFn = ami_error
@@ -17,11 +24,6 @@ ami_error = function (msg)
     _errorCalled = true
     print(msg)
     error(msg)
-end
-
-local function _remove_app_h_json(_path)
-    fs.safe_remove(path.combine(_path, "app.hjson"), { force = true })
-    fs.safe_remove(path.combine(_path, "app.jjson"), { force = true })
 end
 
 local function _init_ami_test(testDir, configPath, options)

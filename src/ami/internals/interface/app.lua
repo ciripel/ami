@@ -1,5 +1,8 @@
 local _amiBase = require"ami.internals.interface.base"
 
+---Generates default app interface
+---@param options AmiCliGeneratorOptions
+---@return ExecutableAmiCli
 local function _new(options)
     if type(options) ~= "table" then
         options = {}

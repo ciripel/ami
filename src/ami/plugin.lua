@@ -1,6 +1,28 @@
 local _util = require "ami.internals.util"
 
-local PLUGIN_IN_MEM_CACHE = PLUGIN_IN_MEM_CACHE or {}
+am.plugin = {}
+
+local _PLUGIN_IN_MEM_CACHE = {}
+
+if TEST_MODE then
+    ---Erases plugin in mem cache
+    function am.plugin.__erase_cache()
+        for k, _ in pairs(_PLUGIN_IN_MEM_CACHE) do
+            _PLUGIN_IN_MEM_CACHE[k] = nil
+        end
+    end
+
+    ---Removes plugin with specified id and version from cache. Defaults to latest version
+    ---@param id string
+    ---@param version string|nil
+    function am.plugin.__remove_cached(id, version)
+        if type(version) ~= "string" then
+            version = "latest"
+        end
+        local _pluginId = id .. '@' .. version
+        _PLUGIN_IN_MEM_CACHE[_pluginId] = nil
+    end
+end
 
 local function _get_plugin_def(name, version)
     local _pluginId = name .. "@" .. version
@@ -56,7 +78,17 @@ local function _get_plugin_def(name, version)
     return _pluginDef
 end
 
-local function _load_plugin(name, options)
+---@class AmiGetPluginOptions
+---@field version string
+---@field safe boolean
+
+---#DES am.plugin.get
+---
+---Loads plugin by name and returns it.
+---@param name string
+---@param options AmiGetPluginOptions
+---@return any, any
+function am.plugin.get(name, options)
     if type(options) ~= "table" then
         options = {}
     end
@@ -66,9 +98,12 @@ local function _load_plugin(name, options)
         _version = options.version
     end
     local _pluginId = name .. "@" .. _version
-    if type(PLUGIN_IN_MEM_CACHE[_pluginId]) == "table" then
+    if type(_PLUGIN_IN_MEM_CACHE[_pluginId]) == "table" then
         log_trace("Loading plugin from cache...")
-        return PLUGIN_IN_MEM_CACHE[_pluginId]
+        if options.safe then
+            return true,  _PLUGIN_IN_MEM_CACHE[_pluginId]
+        end
+        return _PLUGIN_IN_MEM_CACHE[_pluginId]
     end
     log_trace("Plugin not loaded, loading...")
     local _loadDir
@@ -78,7 +113,9 @@ local function _load_plugin(name, options)
     if type(SOURCES) == "table" and SOURCES["plugin."..name] then
         local _pluginDef = SOURCES["plugin."..name]
         _loadDir = table.get(_pluginDef, "directory")
-        ami_assert(_loadDir, "'directory' property as to be specified in case of plugin", EXIT_PKG_LOAD_ERROR)
+        if not ami_assert(_loadDir, "'directory' property as to be specified in case of plugin", EXIT_PKG_LOAD_ERROR, options) then
+            return false, nil
+        end
         _removeLoadDir = false
         _entrypoint = table.get(_pluginDef, "entrypoint", name .. ".lua")
         log_trace("Loading local plugin from path " .. _loadDir)
@@ -99,11 +136,14 @@ local function _load_plugin(name, options)
         if _downloadRequired then
             local _ok = net.safe_download_file(_pluginDefinition.source, _cachedArchivePath, {followRedirects = true})
             local _ok2, _hash = fs.safe_hash_file(_cachedArchivePath, {hex = true})
-            ami_assert(
+            if not ami_assert(
                 _ok and _ok2 and _hash:lower() == _pluginDefinition.sha256:lower(),
                 "Failed to verify package integrity - " .. _pluginId .. "!",
-                EXIT_PLUGIN_DOWNLOAD_ERROR
-            )
+                EXIT_PLUGIN_DOWNLOAD_ERROR,
+                options
+            ) then
+                return false, nil
+            end
         end
 
         local tmpfile = os.tmpname()
@@ -111,18 +151,23 @@ local function _load_plugin(name, options)
         _loadDir = tmpfile .. "_dir"
 
         local _ok, _error = fs.safe_mkdirp(_loadDir)
-        ami_assert(
+        if not ami_assert(
             _ok,
             string.join_strings("", "Failed to create directory for plugin: ", _pluginId, " - ", _error),
-            EXIT_PLUGIN_LOAD_ERROR
-        )
+            EXIT_PLUGIN_LOAD_ERROR,
+            options
+        ) then
+            return false, nil
+        end
 
         local _ok, _error = zip.safe_extract(_cachedArchivePath, _loadDir, {flattenRootDir = true})
-        ami_assert(
+        if not ami_assert(
             _ok,
             string.join_strings("", "Failed to extract plugin package: ", _pluginId, " - ", _error),
-            EXIT_PLUGIN_LOAD_ERROR
-        )
+            EXIT_PLUGIN_LOAD_ERROR, options
+        ) then
+            return false, nil
+        end
 
         _entrypoint = name .. ".lua"
         local _ok, _pluginSpecsJson = fs.safe_read_file(path.combine(_loadDir, "specs.json"))
@@ -150,28 +195,37 @@ local function _load_plugin(name, options)
     if _removeLoadDir then
         fs.safe_remove(_loadDir, { recurse = true })
     end
-    ami_assert(
+    if not ami_assert(
         _ok,
         "Failed to require plugin: " .. _pluginId .. " - " .. (type(_result) == "string" and _result or ""),
-        EXIT_PLUGIN_LOAD_ERROR
-    )
+        EXIT_PLUGIN_LOAD_ERROR, options
+    ) then
+        return false, nil
+    end
+
     if os.EOS then
         local _ok = os.chdir(_originalCwd)
-        ami_assert(_ok, "Failed to chdir after plugin load", EXIT_PLUGIN_LOAD_ERROR)
+        if not ami_assert(_ok, "Failed to chdir after plugin load", EXIT_PLUGIN_LOAD_ERROR, options) then
+            return false, nil
+        end
     end
-    PLUGIN_IN_MEM_CACHE[_pluginId] = _result
+    _PLUGIN_IN_MEM_CACHE[_pluginId] = _result
+    if options.safe then
+        return true, _result
+    end
     return _result
 end
 
-local function __remove_cached_plugin(id, version)
-    if type(version) ~= "string" then
-        version = "latest"
+---#DES am.plugin.get
+---
+---Loads plugin by name and returns it.
+---@param name string
+---@param options AmiGetPluginOptions
+---@return boolean, any
+function am.plugin.safe_get(name, options)
+    if type(options) ~= "table" then 
+        options = {}
     end
-    local _pluginId = id .. '@' .. version
-    PLUGIN_IN_MEM_CACHE[_pluginId] = nil
+    options.safe = true
+    return am.plugin.get(name, options)
 end
-
-return util.generate_safe_functions({
-    get = _load_plugin,
-    __remove_cached = TEST_MODE and __remove_cached_plugin
-})
