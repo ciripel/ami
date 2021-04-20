@@ -106,7 +106,7 @@ function _new(options)
             summary = "Updates the app or returns setup required",
             -- (options, command, args, cli)
             action = function()
-                local _available, _id, _ver = is_update_available()
+                local _available, _id, _ver = am.app.is_update_available()
                 if _available then
                     ami_error("Found new version " .. _ver .. " of " .. _id .. ", please run setup...", EXIT_SETUP_REQUIRED)
                 end
