@@ -1,4 +1,3 @@
-elify()
 local _hjson = require "hjson"
 
 amalg = loadfile("./build/amalg.lua")
@@ -15,6 +14,9 @@ local function get_extensions()
     end
     return table.unpack(_res)
 end
+
+local _metaGenerator = loadfile("./build/meta-generator.lua")
+_metaGenerator()
 
 os.chdir("src")
 get_extensions()

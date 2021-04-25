@@ -132,5 +132,3 @@ am.execute_extension = _exec.native_action
 ---@param injectArgs string[]
 ---@return integer
 am.execute_external = _exec.external_action
-
--- // TODO: docs generator

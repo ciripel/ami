@@ -1,0 +1,6 @@
+[submodule "hjson"]
+	path = hjson
+	url = https://github.com/cryi/hjson-lua.git
+[submodule "libs/hjson"]
+	path = libs/hjson
+	url = https://github.com/cryi/hjson-lua.git

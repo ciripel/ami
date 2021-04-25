@@ -36,7 +36,7 @@ log_error = util.global_log_factory("ami", "success", "trace", "debug", "info", 
 ---@param msg string
 ---@param exitCode number
 ---@param options AmiErrorOptions|nil
-ami_error = ami_error or function (msg, exitCode, options)
+ami_error = TEST_MODE and ami_error or function (msg, exitCode, options)
     log_error(msg)
     if type(options) == "table" and options.safe then
         return false

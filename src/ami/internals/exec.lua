@@ -1,7 +1,5 @@
 local exec = {}
 
----#DES exec.external_action
----
 ---Executes external program with all arguments passed
 ---@param cmd string
 ---@param args CliArg[]
@@ -38,8 +36,6 @@ end
 ---@field errorMsg string|nil
 ---@field partialErrorMsg string|nil
 
----#DES exec.native_action
----
 ---Executes native action - (lua file module)
 ---@param action string|function
 ---@param args CliArg[]|string[]
