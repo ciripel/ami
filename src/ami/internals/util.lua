@@ -1,14 +1,18 @@
-local function _append_to_url(p, ...)
-    if type(p) == "string" then
+local _util = {}
+
+---Appends parts to url
+---@param url string
+---@vararg string
+---@return any
+function _util.append_to_url(url, ...)
+    if type(url) == "string" then
         for _, _arg in ipairs(table.pack(...)) do
             if type(_arg) == "string" then
-                p = path.combine(p, _arg)
+                url = path.combine(url, _arg)
             end
         end
     end
-    return p
+    return url
 end
 
-return {
-    append_to_url = _append_to_url
-}
+return _util

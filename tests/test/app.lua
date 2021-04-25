@@ -1,6 +1,6 @@
 local _test = TEST or require "tests.vendor.u-test"
 
-require"tests.test_init"()
+require"tests.test_init"
 
 local stringify = require "hjson".stringify
 
@@ -9,8 +9,8 @@ local _defaultCwd = os.cwd()
 _test["load app details (json)"] = function()
     am.options.APP_CONFIGURATION_PATH = "app.json"
     os.chdir("tests/app/app_details/1")
-    local _ok, error = pcall(am.app.load_config)
-    local _result = hash.sha256sum(stringify(am.app.__get()), {hex = true})
+    local _ok, error = pcall(am.app.load_configuration)
+    local _result = hash.sha256sum(stringify(am.app.__get(), { sortKeys = true }), true)
     os.chdir(_defaultCwd)
     _test.assert(_result == "59ce504e40b90ae50c6b99567fd57186bad89939a1714c3335381eccf9fb1688")
 end
@@ -18,8 +18,8 @@ end
 _test["load app details (hjson)"] = function()
     am.options.APP_CONFIGURATION_PATH = "app.hjson"
     os.chdir("tests/app/app_details/1")
-    local _ok = pcall(am.app.load_config)
-    local _result = hash.sha256sum(stringify(am.app.__get()), {hex = true})
+    local _ok = pcall(am.app.load_configuration)
+    local _result = hash.sha256sum(stringify(am.app.__get(), { sortKeys = true }), true)
     os.chdir(_defaultCwd)
     _test.assert(_result == "59ce504e40b90ae50c6b99567fd57186bad89939a1714c3335381eccf9fb1688")
 end
@@ -27,8 +27,8 @@ end
 _test["load app model"] = function()
     am.options.APP_CONFIGURATION_PATH = "app.json"
     os.chdir("tests/app/app_details/2")
-    local _ok = pcall(am.app.load_config)
-    local _result = hash.sha256sum(stringify(am.app.get_model()), {hex = true})
+    local _ok = pcall(am.app.load_configuration)
+    local _result = hash.sha256sum(stringify(am.app.get_model(), { sortKeys = true }), true)
     os.chdir(_defaultCwd)
     _test.assert(_result == "4042b5f3b3dd1463d55166db96f3b17ecfe08b187fecfc7fb53860a478ed0844")
 end
@@ -107,7 +107,7 @@ _test["remove app"] = function()
 
     local _ok = pcall(am.app.prepare)
     _test.assert(_ok)
-    local _ok = pcall(am.app.remove)
+    local _ok, _error = pcall(am.app.remove)
     _test.assert(_ok)
     local _ok, _entries = fs.safe_read_dir(".", {recurse = true})
     local _nonDataEntries = {}
@@ -126,7 +126,7 @@ _test["is update available"] = function()
     local _testDir = "tests/app/app_update/1"
 
     os.chdir(_testDir)
-    local _ok = pcall(am.app.load_config)
+    local _ok = pcall(am.app.load_configuration)
     _test.assert(am.app.is_update_available())
     os.chdir(_defaultCwd)
 end
@@ -136,7 +136,7 @@ _test["is update available (updated already)"] = function()
     local _testDir = "tests/app/app_update/2"
 
     os.chdir(_testDir)
-    local _ok = pcall(am.app.load_config)
+    local _ok = pcall(am.app.load_configuration)
     _test.assert(not am.app.is_update_available())
     os.chdir(_defaultCwd)
 end
@@ -146,7 +146,7 @@ _test["is update available alternative channel"] = function()
     local _testDir = "tests/app/app_update/3"
 
     os.chdir(_testDir)
-    local _ok = pcall(am.app.load_config)
+    local _ok = pcall(am.app.load_configuration)
     local _isAvailable, _pkgId, _version = am.app.is_update_available()
     _test.assert(_isAvailable and _version == "0.0.3-beta")
     os.chdir(_defaultCwd)

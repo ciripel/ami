@@ -1,12 +1,9 @@
+---@diagnostic disable: undefined-global, lowercase-global
 local _testApp = TEST_APP or "test.app"
 local _test = TEST or require "tests.vendor.u-test"
-require"tests.test_init"()
-
-local stringify = require "hjson".stringify
+require"tests.test_init"
 
 local _defaultCwd = os.cwd()
-
-local am = require "ami.am"()
 
 _test["execute"] = function()
     local _interface = {
@@ -24,11 +21,11 @@ _test["execute"] = function()
             }
         },
         action = function(_, _command, _args)
+            print("nesteeeed ", _command, _args)
             am.execute(_command, _args)
         end
     }
     am.__set_interface(_interface)
-
     local _output
     local _originalPrint = print
     print = function(msg)
@@ -113,8 +110,8 @@ end
 
 _test["get_proc_args"] = function()
     local _passedArgs = {"aaa", "bbb", "ccc"}
-    local _am = require "ami.am"(table.unpack(_passedArgs))
-    local _args = _am.get_proc_args()
+    am.__args = _passedArgs
+    local _args = am.get_proc_args()
     _test.assert(util.equals(_args, _passedArgs, true))
 end
 
@@ -141,10 +138,10 @@ _test["parse_args"] = function()
     }
     am.__set_interface(_interface)
 
-    local _args = {"test", "-to=randomOption"}
-    _test.assert(hash.sha256sum(hjson.stringify({am.parse_args(_args)}, {invalidObjectsAsType = true, indent = false}), true) == "39e8e5febeee2a65653b97914971cf0269ba34ce8a801851f10ec9be3d7992a1")
+    local _args = { "test", "-to=randomOption"}
+    _test.assert(hash.sha256sum(hjson.stringify({am.parse_args(_args)}, {invalidObjectsAsType = true, indent = false, sortKeys = true }), true) == "39e8e5febeee2a65653b97914971cf0269ba34ce8a801851f10ec9be3d7992a1")
     local _args = {"test", "-to=randomOption", "test2", "--test3=xxx"}
-    _test.assert(hash.sha256sum(hjson.stringify({am.parse_args(_args)}, {invalidObjectsAsType = true, indent = false}), true) == "173e8397066e26357a14d99eb49de241dc52e2862ea7f403d4ab1fce2ab1262b")
+    _test.assert(hash.sha256sum(hjson.stringify({am.parse_args(_args)}, {invalidObjectsAsType = true, indent = false, sortKeys = true}), true) == "173e8397066e26357a14d99eb49de241dc52e2862ea7f403d4ab1fce2ab1262b")
 
     local _args = {"-to=randomOption", "test2", "--test3=xxx"}
     local _errorHit = false

@@ -1,7 +1,6 @@
-local AM_VERSION = "0.12.1"
-local AM_ABOUT = "AMI - Application Management Interface - cli " .. AM_VERSION .. " (C) 2021 cryon.io"
+local AM_VERSION = "0.13.0"
 
 return {
     VERSION = AM_VERSION,
-    ABOUT = AM_ABOUT
+    ABOUT = "AMI - Application Management Interface - cli " .. AM_VERSION .. " (C) 2021 cryon.io"
 }

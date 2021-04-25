@@ -1,4 +1,6 @@
-function _new()
+---Generates AmiBaseInterface
+---@return AmiCliBase
+local function _new()
     return {
         id = "ami",
         title = "AMI",

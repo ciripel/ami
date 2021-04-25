@@ -1,13 +1,13 @@
 #!/usr/sbin/eli
-elify() -- globalize eli libs
-require"ami.init"(...)
+require"am"
+am.__args = { ... }
 
 local _parsedOptions, _, _remainingArgs = am.__parse_base_args({...})
 
 if _parsedOptions["local-sources"] then
     local _ok, _localPkgsFile = fs.safe_read_file(_parsedOptions["local-sources"])
     ami_assert(_ok, "Failed to read local sources file " .. _parsedOptions["local-sources"], EXIT_INVALID_SOURCES_FILE)
-    local _ok, _sources = pcall(hjson.parse, _localPkgsFile)
+    local _ok, _sources = hjson.safe_parse(_localPkgsFile)
     ami_assert(_ok, "Failed to parse local sources file " .. _parsedOptions["local-sources"], EXIT_INVALID_SOURCES_FILE)
     SOURCES = _sources
 end
@@ -15,7 +15,7 @@ end
 if _parsedOptions.path then
     if os.EOS then
         package.path = package.path .. ";" .. os.cwd() .. "/?.lua"
-        local _ok, _err = os.safe_chdir(_parsedOptions.path)
+        local _ok, _err = os.chdir(_parsedOptions.path)
         assert(_ok, _err)
     else
         log_error("Option 'path' provided, but chdir not supported.")
@@ -76,12 +76,12 @@ if _parsedOptions["erase-cache"] then
 end
 
 if _parsedOptions["dry-run"] then
-    if _parsedOptions["dry-run-model"] then
+    if _parsedOptions["dry-run-config"] then
         local _ok, _appConfig = hjson.safe_parse(_parsedOptions["dry-run-config"])
         if _ok then -- model is valid json
             am.app.__set_app(_appConfig)
         else -- model is not valid json fallback to path
-            am.app.load_config(_parsedOptions["dry-run-config"])
+            am.app.load_configuration(_parsedOptions["dry-run-config"])
         end
     end
     am.execute_extension(_remainingArgs[1].value, ...)
@@ -89,7 +89,7 @@ if _parsedOptions["dry-run"] then
 end
 
 if not am.app.__is_loaded() then
-    am.app.load_config()
+    am.app.load_configuration()
 end
 
 am.__reload_interface(am.options.SHALLOW)
