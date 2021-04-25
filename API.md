@@ -11,6 +11,10 @@ am
             - contextFailExitCode: number 
             - partialErrorMsg: string - partial fallback error message, internal error is added to the end of this msg
             - errorMsg: string - fall back error message, internal error is not included
+    
+    .am.execute_external(command, args, injectArgs)
+        - executes shell command
+        - returns exit code
 
     .get_proc_args()
         - returns all args passed to ami process
@@ -26,7 +30,7 @@ am
         - cmd defaults to am.__inteface
 
     .app
-        .load_config()
+        .load_configuration()
         .load_model()
         .prepare()
         .render()
@@ -37,7 +41,7 @@ am
         .remove()
 
         .get()                              - gets loaded value from app.h/json
-        .get_config(key = nil, default)     - gets value from loaded config or config
+        .get_configuration(key = nil, default)     - gets value from loaded config or config
         .get_model(key = nil, default)      - gets value from loaded config or config
         .set_model(newModel, path?, options: { merge = false, overwrite = true })
             - sets model or model value
@@ -49,6 +53,9 @@ am
 
     .plugin
         .get(id, version) - gets plugin from cache or downloads it
+        .safe_get(id, version) - tryes to get plugin
+            * returns true, plugin on success 
+            * returns false, nil on failure
 
 
 # INTERNALS
@@ -62,12 +69,15 @@ am
 # TEST_MODE:
 am
     __set_interface(ami) - sets current am interface
+    __reset_options() - resets am options
 
     .app
         .__get() - returns internal __APP
         .__set() - sets internal __APP
+        .__set_loaded(value) - overwrites internal `set_loaded` states
 
     .plugin
+        .__erase_cache()              - erases in mem plugin cache
         .__remove_cached(id, version) - removes all plugins from cache
 
 TODO: consider possibility to drop dependency on posix/win32 fs api

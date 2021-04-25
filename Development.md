@@ -30,3 +30,5 @@ You can test single ami extension (.lua) file with `--dry-run` and `--dry-run-co
 - by default ami loads app.h/json. You can suppress this by using above option
 
 Example: `ami --dry-run --dry-run-config="{ type: test }" download-binaries.lua`
+
+// TODO: Plugin
