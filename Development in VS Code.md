@@ -28,7 +28,7 @@ To get autocomplete for eli std library you have to:
         "tar",
         "util",
         "ver",
-        "zip"
+        "zip",
 
         "am",
         "hjson",
