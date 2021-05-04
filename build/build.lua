@@ -20,7 +20,7 @@ _metaGenerator()
 
 os.chdir("src")
 get_extensions()
-amalg("-o", "../bin/ami.lua", "-s", "ami.lua", "version-info", get_extensions())--, get_extensions())
+amalg("-o", "../bin/ami.lua", "-s", "ami.lua", "am", "version-info", get_extensions())--, get_extensions())
 
 local _exitCodes = require("ami.exit-codes")
 local _exitCodesJson = _hjson.stringify_to_json(_exitCodes, { item_sort_key = function (k1, k2)
