@@ -19,7 +19,7 @@ local _metaGenerator = loadfile("./build/meta-generator.lua")
 _metaGenerator()
 
 os.chdir("src")
-get_extensions()
+
 amalg("-o", "../bin/ami.lua", "-s", "ami.lua", "am", "version-info", get_extensions())--, get_extensions())
 
 local _exitCodes = require("ami.exit-codes")
