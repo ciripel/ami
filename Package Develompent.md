@@ -23,3 +23,13 @@ Then you just run ami commands as follows (we are assuming that you are in app d
 ```sh
 ami --local-sources="../sources.json" setup
 ```
+
+## Plugins
+
+Plugins are automatically resolved from local sources if there is `<package id>` prefixed with `plugin.`.
+E.g. for plugin `platform`:
+```json
+{
+    "plugin.platform": "<path to platform plugin source>"
+}
+```
