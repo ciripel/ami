@@ -216,7 +216,7 @@ function am.plugin.get(name, options)
     return _result
 end
 
----#DES am.plugin.get
+---#DES am.plugin.safe_get
 ---
 ---Loads plugin by name and returns it.
 ---@param name string
