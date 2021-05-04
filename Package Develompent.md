@@ -30,6 +30,9 @@ Plugins are automatically resolved from local sources if there is `<package id>`
 E.g. for plugin `platform`:
 ```json
 {
-    "plugin.platform": "<path to platform plugin source>"
+    "plugin.platform": {
+        "directory": "<path to platform plugin source>",
+        "entrypoint": "<name of entrypoint file>"
+    }
 }
 ```
