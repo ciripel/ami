@@ -59,9 +59,9 @@ function exec.native_action(action, args, options)
     AMI_CONTEXT_FAIL_EXIT_CODE = options.contextFailExitCode
     local _id = table.get(options, "id",  table.get(options, "title", "unspecified"))
     if type(action) == "string" then
-        local _ok, _ext = pcall(loadfile, action)
-        if not _ok then
-            ami_error("Failed to load extension from " .. path .. " - " .. (_ext or ""))
+        local _ext, _error = loadfile(action)
+        if type(_ext) ~= "function" then
+            ami_error("Failed to load extension from " .. path .. " - " .. _error)
         end
         _id = action
         action = _ext

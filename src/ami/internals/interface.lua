@@ -15,8 +15,8 @@ function _interface.new(kind, options)
         return _kindMap[kind].new(options)
     end
     -- try load from path if not cached
-    local _ok, _new_base = pcall(loadfile, kind)
-    ami_assert(_ok, "Base interface " .. (kind or "undefined") .. "not found!", EXIT_INVALID_AMI_BASE_INTERFACE)
+    local _new_base, _error= loadfile(kind)
+    ami_assert(_new_base, "Base interface " .. (kind or "undefined") .. "not found or can not be loaded (Error: '" .. (_error or "") .. "')!", EXIT_INVALID_AMI_BASE_INTERFACE)
     local _ok, _base = pcall(_new_base, options)
     ami_assert(_ok, "Failed to load base interface - " .. (kind or "undefined") .. "!", EXIT_INVALID_AMI_BASE_INTERFACE)
     -- recursively match all nested interfaces
