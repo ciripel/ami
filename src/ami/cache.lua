@@ -17,7 +17,9 @@ function am.cache.safe_rm_pkgs() return pcall(am.cache.rm_pkgs) end
 ---
 ---Deletes content of plugin cache
 function am.cache.rm_plugins()
-    am.plugin.__erase_cache()
+    if TEST_MODE then
+        am.plugin.__erase_cache()
+    end
     fs.remove(am.options.CACHE_PLUGIN_DIR_ARCHIVES, { recurse = true, contentOnly = true })
     fs.remove(am.options.CACHE_PLUGIN_DIR_DEFS, { recurse = true, contentOnly = true })
 end
