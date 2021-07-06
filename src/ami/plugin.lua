@@ -97,6 +97,13 @@ function am.plugin.get(name, options)
     if type(options.version) == "string" then
         _version = options.version
     end
+
+	local _boundPackages = am.app.get("dependency override")
+	if type(name) == "string" and type(_boundPackages) == "table" and type(_boundPackages["plugin." .. name]) == "string" then
+		_version = _boundPackages["plugin." .. name]
+		log_warn("Using overriden plugin version " .. _version .. " of " .. name .. "!")
+	end
+
     local _pluginId = name .. "@" .. _version
     if type(_PLUGIN_IN_MEM_CACHE[_pluginId]) == "table" then
         log_trace("Loading plugin from cache...")

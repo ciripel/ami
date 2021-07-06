@@ -35,6 +35,11 @@ local _pkg = {}
 ---Normalizes package type
 ---@param pkgType AmiPackageType
 local function _normalize_pkg_type(pkgType)
+	local _boundPackages = am.app.get("dependency override")
+	if type(pkgType.id) == "string" and type(_boundPackages) == "table" and type(_boundPackages[pkgType.id]) == "string" then
+		pkgType.version = _boundPackages[pkgType.id]
+		log_warn("Using overriden version " .. pkgType.version .. " of " .. pkgType.id .. "!")
+	end
     if pkgType.version == nil then
         pkgType.version = "latest"
     end
