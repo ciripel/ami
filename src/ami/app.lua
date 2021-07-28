@@ -95,7 +95,7 @@ end
 ---#DES am.app.get_model
 ---
 ---Gets valua from path in app model or falls back to default if value in path is nil
----@param path string
+---@param path string|string[]
 ---@param default any
 ---@return any
 function am.app.get_model(path, default)

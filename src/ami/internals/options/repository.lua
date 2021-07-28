@@ -1,7 +1,7 @@
 ---@type AmiOptionsPlugin
 local repOpts = {}
 
-local DEFAULT_REPOSITORY_URL = "https://raw.githubusercontent.com/cryon-io/air/master/ami/"
+local DEFAULT_REPOSITORY_URL = "https://air.alis.is/ami/"
 
 function repOpts.index(t, k)
     if k == "DEFAULT_REPOSITORY_URL" then
