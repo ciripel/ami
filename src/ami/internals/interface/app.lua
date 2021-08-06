@@ -122,8 +122,7 @@ local function _new(options)
             summary = "Remove the app or parts based on options",
             options = {
                 all = {
-                    index = 2,
-                    description = "Removes application data (usually equals app reset)"
+                    description = "Removes entire application keeping only app.hjson"
                 }
             },
             -- (options, command, args, cli)
