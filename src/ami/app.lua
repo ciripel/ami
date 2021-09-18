@@ -25,17 +25,20 @@ if TEST_MODE then
         __modelLoaded = value
     end
 
-    ---Replaces loaded APP with app
-    ---@param app table
-    function am.app.__set(app)
-        __APP = app
-    end
-
     ---Returns loaded APP
     ---@return table
     function am.app.__get()
         return __APP
     end
+end
+
+---Replaces loaded APP with app
+---@param app table
+function am.app.__set(app)
+    if not TEST_MODE then
+        log_warn("App override detected.eli")
+    end
+    __APP = app
 end
 
 ---#DES am.app.get
@@ -197,7 +200,7 @@ function am.app.load_configuration(path)
         ami_error("Failed to parse app.h/json - " .. __APP, EXIT_INVALID_CONFIGURATION)
 	else
 		local _variables = am.app.get("variables", {})
-		--_configContent = _util.replace_variables(_configContent, _variables)
+		_configContent = _util.replace_variables(_configContent, _variables)
     end
     __APP = hjson.parse(_configContent)
     _normalize_app_pkg_type(__APP)
@@ -228,6 +231,14 @@ end
 ---
 ---Renders app templates.
 am.app.render = _amiTpl.render_templates
+
+---#DES am.app.__are_templates_generated
+---
+---Returns true if templates were generated already
+---@return boolean
+function am.app.__are_templates_generated()
+    return _amiTpl.__templatesGenerated
+end
 
 ---#DES am.app.is_update_available
 ---
