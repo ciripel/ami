@@ -127,12 +127,12 @@ end
 ---@return string
 local function _get_pkg(pkgDef)
     local _cachedPkgPath = path.combine(am.options.CACHE_DIR_ARCHIVES, pkgDef.sha256)
-
+    local _expectedPkgHash = (pkgDef.sha256 or "unknown"):lower()
     if am.options.CACHE_DISABLED ~= true then
         if am.options.NO_INTEGRITY_CHECKS ~= true then
             local _ok, _hash = fs.safe_hash_file(_cachedPkgPath, {hex = true})
-            if _ok and _hash == pkgDef.sha256 then
-                log_trace("Using cached version of " .. pkgDef.sha256)
+            if _ok and _hash == _expectedPkgHash then
+                log_trace("Using cached version of " .. _expectedPkgHash)
                 return _cachedPkgPath
             end
         elseif fs.exists(_cachedPkgPath) then
@@ -143,11 +143,11 @@ local function _get_pkg(pkgDef)
 
     local _ok, _error = net.safe_download_file(pkgDef.source, _cachedPkgPath, {followRedirects = true})
     if not _ok then
-        ami_error("Failed to get package " .. _error .. " - " .. (pkgDef.id or pkgDef.sha256), EXIT_PKG_DOWNLOAD_ERROR)
+        ami_error("Failed to get package " .. _error .. " - " .. (pkgDef.id or _expectedPkgHash), EXIT_PKG_DOWNLOAD_ERROR)
     end
     local _ok, _hash = fs.safe_hash_file(_cachedPkgPath, {hex = true})
-    ami_assert(_ok and _hash == pkgDef.sha256, "Failed to verify package integrity - " .. pkgDef.sha256 .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)
-    log_trace("Integrity checks of " .. pkgDef.sha256 .. " successful.")
+    ami_assert(_ok and _hash == _expectedPkgHash, "Failed to verify package integrity - " .. _expectedPkgHash .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)
+    log_trace("Integrity checks of " .. _expectedPkgHash .. " successful.")
 
     return _cachedPkgPath
 end
