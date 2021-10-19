@@ -28,18 +28,16 @@ _test["load app details (variables - json)"] = function()
     am.options.APP_CONFIGURATION_PATH = "app.json"
     os.chdir("tests/app/app_details/4")
     local _ok = pcall(am.app.load_configuration)
-    local _result = hash.sha256sum(stringify(am.app.__get(), { sortKeys = true }), true)
     os.chdir(_defaultCwd)
-    _test.assert(_result == "4addb22d709a078233076da5d4d8310a6240ccffe7c0fb0bfc320b4bd4a95186")
+    _test.assert(am.app.get_configuration({"TEST_CONFIGURATION", "key"}) == "test-key2")
 end
 
 _test["load app details (variables - hjson)"] = function()
     am.options.APP_CONFIGURATION_PATH = "app.hjson"
     os.chdir("tests/app/app_details/4")
     local _ok = pcall(am.app.load_configuration)
-    local _result = hash.sha256sum(stringify(am.app.__get(), { sortKeys = true }), true)
     os.chdir(_defaultCwd)
-    _test.assert(_result == "4addb22d709a078233076da5d4d8310a6240ccffe7c0fb0bfc320b4bd4a95186")
+    _test.assert(am.app.get_configuration({"TEST_CONFIGURATION", "key"}) == "test-key")
 end
 
 _test["load app model"] = function()

@@ -15,55 +15,43 @@ function _util.append_to_url(url, ...)
     return url
 end
 
-
-local function _replace_variables_recursively(content, variables)
-	if type(variables) ~= "table" or util.is_array(variables) then
-		return content
-	end
-	local _totalReplacementCount = 0
-	for var, value in pairs(variables) do
-		if not content:match("<.*>") then goto FINISH end
-
-		if type(value) ~= "string" and type(value) ~= "number" then 
-			log_warn("Invalid value of variable '" .. var .. "' detected: " .. tostring(value) .. "of type '" .. type(value) .. "'. Skipping...")
-			goto CONTINUE
-		end
-		if type(value) == "string" and value:match("<" .. var .. ">") then 
-			log_warn("Invalid value of variable '" .. var .. "' recursion detected: " .. tostring(value) .. "of type '" .. type(value) .. "'. Skipping...")
-			goto CONTINUE
-		end
-		local _replacementCount = 0
-		content, _replacementCount = content:gsub("<" .. var .. ">", value)
-		_totalReplacementCount = _totalReplacementCount + _replacementCount
-		::CONTINUE::
-	end
-	::FINISH::
-	if _totalReplacementCount > 0 then
-		return _replace_variables_recursively(content, variables)
-	end
-	return content
-end
-
----Replaces variables in string
+---Appends parts to url
 ---@param content string
 ---@param variables table
----@return string
-function _util.replace_variables(content, variables)
-	if type(variables) ~= "table" or util.is_array(variables) then
-		return content
+---@param cache table
+---@param used table
+---@return string, number
+function _util.replace_variables(content, variables, cache, used)
+	if type(used) ~= "table" then 
+		used = {}
 	end
-
-	for var, value in pairs(variables) do
-		variables[var] = _replace_variables_recursively(value)
+	if type(cache) ~= "table" then 
+		cache = {}
 	end
+	local _toReplace = {}
 
-	for var, value in pairs(variables) do
-		if type(value) ~= "string" and type(value) ~= "number" then 
-			log_warn("Invalid value of variable '" .. var .. "' detected: " .. tostring(value) .. "of type '" .. type(value) .. "'. Skipping...")
-			goto CONTINUE
+	for vid in content:gmatch("<(%S-)>") do
+		if type(cache[vid]) == "string" then
+			_toReplace["<" .. vid .. ">"] = cache[vid]
+		elseif type(variables[vid]) == "string" then
+			local _value = variables[vid]
+			variables[vid] = nil
+			used[vid] = true
+			local _result = _util.replace_variables(_value, variables, cache, used)
+			_toReplace["<" .. vid .. ">"] = _result
+			cache[vid] = _result
+			variables[vid] = _value
+			used[vid] = nil
+		elseif type(variables[vid]) == "number" then
+			_toReplace["<" .. vid .. ">"] = variables[vid]
+			cache[vid] = variables[vid]
+		elseif used[vid] == true then
+			log_warn("Cyclic variable reference detected '" .. tostring(vid) .. "'.")
 		end
-		content = content:gsub("<" .. var .. ">", value)
-		::CONTINUE::
+	end
+	
+	for k, v in pairs(_toReplace) do 
+		content = content:gsub(k:gsub("[%(%)%.%%%+%-%*%?%[%^%$%]]", "%%%1"), v)
 	end
 	return content
 end

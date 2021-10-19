@@ -302,6 +302,39 @@ _test["process cli (external)"] = function()
     proc.EPROC = true
 end
 
+_test["process cli (external - custom env)"] = function()
+    local _cli = {
+        title = "test cli2",
+        description = "test cli description",
+        commands = {
+            test = {
+                action = "sh",
+                description = "test cli test command",
+                type = "external",
+                environment = {
+                    EXIT_CODE = "179"
+                }
+            }
+        },
+        action = function(_, command, args, _)
+            if command then
+                return am.execute(command, args)
+            else
+                ami_error("No valid command provided!", EXIT_CLI_CMD_UNKNOWN)
+            end
+        end
+    }
+
+    local _argList = {"test", "-c", "exit $EXIT_CODE"}
+    local _ok, _result = pcall(am.execute, _cli, _argList)
+    _test.assert(_ok and _result == 179)
+
+    _cli.commands.test.environment.EXIT_CODE = 175
+    local _argList = {"test", "-c", "exit $EXIT_CODE"}
+    local _ok, _result = pcall(am.execute, _cli, _argList)
+    _test.assert(_ok and _result == 175)
+end
+
 local function _collect_printout(_fn)
     local _oldPrint = print
     local _result = ""

@@ -25,6 +25,7 @@
 ---@field injectArgs string[]
 ---@field customHelp boolean
 ---@field help_message string|fun(cli:AmiCli)
+---@field environment table<string, string>
 
 ---@class RootAmiCli: AmiCli
 ---@field title string

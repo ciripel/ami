@@ -4,8 +4,9 @@ local exec = {}
 ---@param cmd string
 ---@param args CliArg[]
 ---@param injectArgs string[]
+---@param env table<string, string>
 ---@return integer
-function exec.external_action(cmd, args, injectArgs)
+function exec.external_action(cmd, args, injectArgs, env)
     local _args = {}
     if type(injectArgs) == "table" then
         for _, v in ipairs(injectArgs) do
@@ -18,6 +19,9 @@ function exec.external_action(cmd, args, injectArgs)
         table.insert(_args, v.arg)
     end
     if not proc.EPROC then
+        if type(env) == "table" then
+            log_warn("EPROC not available but env in external action defined. ENV variables are ignores and process environment inherited from ami process...")
+        end
         local execArgs = ""
         for _, v in ipairs(args) do
             execArgs = execArgs .. ' "' .. v.arg:gsub("\\", "\\\\"):gsub('"', '\\"') .. '"' -- add qouted string
@@ -26,7 +30,7 @@ function exec.external_action(cmd, args, injectArgs)
         ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
         return _result.exitcode
     end
-    local _ok, _result = proc.safe_spawn(cmd, _args, {wait = true, stdio = "ignore"})
+    local _ok, _result = proc.safe_spawn(cmd, _args, {wait = true, stdio = "ignore", env = env})
     ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
     return _result.exitcode
 end

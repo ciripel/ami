@@ -173,6 +173,9 @@ end
 ---Looks up path to configuration file and retuns it
 ---@return string|nil
 local function _get_configuration_path()
+    if type(am.options.APP_CONFIGURATION_PATH) == "string" then 
+        return am.options.APP_CONFIGURATION_PATH
+    end
     local _configurationCandidates = am.options.APP_CONFIGURATION_CANDIDATES
     for _, _cfgCandidate in ipairs(_configurationCandidates) do
         if fs.exists(_cfgCandidate) then
