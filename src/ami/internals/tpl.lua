@@ -1,6 +1,8 @@
 local _lustache = require "lustache"
 
-local tpl = {}
+local tpl = {
+   __templatesGenerated = false
+}
 
 ---Prepares data for rendering
 ---@param source table
@@ -69,6 +71,7 @@ function tpl.render_templates()
          log_trace("'" .. _renderedPath .. "' rendered successfully.")
       end
    end
+   tpl.__templatesGenerated = true
 end
 
 return tpl

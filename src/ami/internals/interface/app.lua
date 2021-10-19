@@ -55,13 +55,13 @@ local function _new(options)
                     _subAmiLoaded = am.__reload_interface()
                 end
 
-                -- You should not use next 5 lines in your app
+                -- You should not use next 3 lines in your app
                 if _subAmiLoaded then
                     am.execute(am.get_proc_args())
                 end
 
-                if _noOptions or _options.configure then
-                    am.app.render()
+                if (_noOptions or _options.configure) and not am.app.__are_templates_generated() then
+                     am.app.render()
                 end
             end
         },
@@ -122,8 +122,7 @@ local function _new(options)
             summary = "Remove the app or parts based on options",
             options = {
                 all = {
-                    index = 2,
-                    description = "Removes application data (usually equals app reset)"
+                    description = "Removes entire application keeping only app.hjson"
                 }
             },
             -- (options, command, args, cli)

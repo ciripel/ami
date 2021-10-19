@@ -12,7 +12,7 @@ _test["load app details (json)"] = function()
     local _ok, error = pcall(am.app.load_configuration)
     local _result = hash.sha256sum(stringify(am.app.__get(), { sortKeys = true }), true)
     os.chdir(_defaultCwd)
-    _test.assert(_result == "59ce504e40b90ae50c6b99567fd57186bad89939a1714c3335381eccf9fb1688")
+    _test.assert(_result == "47ace184c2e5de614235573853f92f1146c95c78bcc284195f58313b258bf65f")
 end
 
 _test["load app details (hjson)"] = function()
@@ -21,7 +21,23 @@ _test["load app details (hjson)"] = function()
     local _ok = pcall(am.app.load_configuration)
     local _result = hash.sha256sum(stringify(am.app.__get(), { sortKeys = true }), true)
     os.chdir(_defaultCwd)
-    _test.assert(_result == "59ce504e40b90ae50c6b99567fd57186bad89939a1714c3335381eccf9fb1688")
+    _test.assert(_result == "47ace184c2e5de614235573853f92f1146c95c78bcc284195f58313b258bf65f")
+end
+
+_test["load app details (variables - json)"] = function()
+    am.options.APP_CONFIGURATION_PATH = "app.json"
+    os.chdir("tests/app/app_details/4")
+    local _ok = pcall(am.app.load_configuration)
+    os.chdir(_defaultCwd)
+    _test.assert(am.app.get_configuration({"TEST_CONFIGURATION", "key"}) == "test-key2")
+end
+
+_test["load app details (variables - hjson)"] = function()
+    am.options.APP_CONFIGURATION_PATH = "app.hjson"
+    os.chdir("tests/app/app_details/4")
+    local _ok = pcall(am.app.load_configuration)
+    os.chdir(_defaultCwd)
+    _test.assert(am.app.get_configuration({"TEST_CONFIGURATION", "key"}) == "test-key")
 end
 
 _test["load app model"] = function()
