@@ -12,7 +12,7 @@ fi
 
 # install eli
 echo "Downloading eli setup script..."
-if ! "$@" https://raw.githubusercontent.com/cryon-io/eli/master/install.sh; then
+if ! "$@" https://raw.githubusercontent.com/alis-is/eli/master/install.sh; then
     echo "Failed to download eli, please retry ... "
     exit 1
 fi
