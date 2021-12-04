@@ -26,7 +26,7 @@ function exec.external_action(cmd, args, options)
     if type(options) ~= "table" then options = {} end
 
     _append_strings(_args, options.injectArgs)
-    _append_strings(_args, args)
+    _append_strings(_args, table.map(args, function (v) return v.arg end))
     _append_strings(_args, options.injectArgsAfter)
 
     if not proc.EPROC then
