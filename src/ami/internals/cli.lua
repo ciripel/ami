@@ -422,7 +422,7 @@ function _amiCli.process(_ami, args)
             "Action has to be string specifying path to external cli",
             EXIT_CLI_INVALID_DEFINITION
         )
-        return _exec.external_action(action, _parsedArgs, _ami.injectArgs, _ami.environment)
+        return _exec.external_action(action, _parsedArgs, _ami)
     end
 
     if _ami.type == "raw" then
