@@ -23,6 +23,7 @@
 ---@field type '"default"' | '"external"' | '"raw"'
 ---@field exec string
 ---@field injectArgs string[]
+---@field injectArgsAfter string[]
 ---@field customHelp boolean
 ---@field help_message string|fun(cli:AmiCli)
 ---@field environment table<string, string>

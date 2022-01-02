@@ -1,6 +1,5 @@
 local _amiPkg = require "ami.internals.pkg"
 local _amiTpl = require "ami.internals.tpl"
-local _util = require "ami.internals.util"
 
 am.app = {}
 
@@ -203,7 +202,9 @@ function am.app.load_configuration(path)
         ami_error("Failed to parse app.h/json - " .. __APP, EXIT_INVALID_CONFIGURATION)
 	else
 		local _variables = am.app.get("variables", {})
-		_configContent = _util.replace_variables(_configContent, _variables)
+        local _options = am.app.get("options", {})
+		_variables = util.merge_tables(_variables, { ROOT_DIR = os.EOS and os.cwd() or "." }, true)
+		_configContent = am.util.replace_variables(_configContent, _variables, _options)
     end
     __APP = hjson.parse(_configContent)
     _normalize_app_pkg_type(__APP)

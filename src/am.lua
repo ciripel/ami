@@ -7,6 +7,7 @@ require"ami.globals"
 
 am = require"version-info"
 require"ami.cache"
+require"ami.util"
 require"ami.app"
 require"ami.plugin"
 am.options = _initialize_options({

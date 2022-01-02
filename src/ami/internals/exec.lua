@@ -1,26 +1,37 @@
 local exec = {}
 
+---@class ExternalActionOptions
+---@field injectArgs string[]
+---@field injectArgsAfter string[]
+---@field environment table<string, string>
+
+---@param destTable string[]
+---@param toAppend string[]
+local function _append_strings(destTable, toAppend)
+    if not util.is_array(toAppend) then return end
+    for _, v in ipairs(toAppend) do
+        if type(v) ~= "string" then goto CONTINUE end
+        table.insert(destTable, v)
+        ::CONTINUE::
+    end
+end
+
 ---Executes external program with all arguments passed
 ---@param cmd string
 ---@param args CliArg[]
----@param injectArgs string[]
----@param env table<string, string>
+---@param options ExternalActionOptions
 ---@return integer
-function exec.external_action(cmd, args, injectArgs, env)
+function exec.external_action(cmd, args, options)
     local _args = {}
-    if type(injectArgs) == "table" then
-        for _, v in ipairs(injectArgs) do
-            if type(v) == "string" then
-                table.insert(_args, v)
-            end
-        end
-    end
-    for _, v in ipairs(args) do
-        table.insert(_args, v.arg)
-    end
+    if type(options) ~= "table" then options = {} end
+
+    _append_strings(_args, options.injectArgs)
+    _append_strings(_args, table.map(args, function (v) return v.arg end))
+    _append_strings(_args, options.injectArgsAfter)
+
     if not proc.EPROC then
-        if type(env) == "table" then
-            log_warn("EPROC not available but env in external action defined. ENV variables are ignores and process environment inherited from ami process...")
+        if type(options.environment) == "table" then
+            log_warn("EPROC not available but environment in external action defined. Environment variables are ignored and process environment inherited from ami process...")
         end
         local execArgs = ""
         for _, v in ipairs(args) do
@@ -30,7 +41,7 @@ function exec.external_action(cmd, args, injectArgs, env)
         ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
         return _result.exitcode
     end
-    local _ok, _result = proc.safe_spawn(cmd, _args, {wait = true, stdio = "ignore", env = env})
+    local _ok, _result = proc.safe_spawn(cmd, _args, {wait = true, stdio = "ignore", env = options.environment})
     ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
     return _result.exitcode
 end
