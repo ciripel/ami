@@ -42,6 +42,10 @@ jobs:
               exit 1
           fi
 
+      - name: test ami
+        run: |
+          ./eli ./tests/all.lua
+
       - name: prep
         id: prep
         run: |
@@ -52,10 +56,6 @@ jobs:
           else
             echo "::set-output name=NEEDS_RELEASE::true"
           fi
-
-      - name: test ami
-        run: |
-          ./eli ./tests/all.lua
 
       - name: build ami
         if: ${{ steps.prep.outputs.NEEDS_RELEASE == 'true'}}

@@ -3,12 +3,6 @@ local _test = TEST or require "tests.vendor.u-test"
 
 require"tests.test_init"
 
---[[require "src.ami.exit_codes"
-require "src.ami.cli"
-eliProc = require "eli.proc"
-eliCli = require "eli.cli"
-eliPath = require "eli.path"]]
-
 _test["parse args"] = function()
     local _oldArgs = args
     args = {}

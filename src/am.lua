@@ -100,6 +100,12 @@ function am.__reload_interface(shallow)
     return _isAppSpecific
 end
 
+---Finds app entrypoint (ami.lua/ami.json/ami.hjson)
+---@return boolean, ExecutableAmiCli, string
+function am.__find_entrypoint()
+    return _interface.find_entrypoint()
+end
+
 if TEST_MODE then
     ---Overwrites ami interface (TEST_MODE only)
     ---@param ami AmiCli

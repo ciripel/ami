@@ -13,6 +13,7 @@ require"tests.test.am"
 require"tests.test.am-app"
 require"tests.test.cache"
 require"tests.test.ami"
+require"tests.test.interfaces"
 
 local _ntests, _nfailed = _test.result()
 _test.summary()

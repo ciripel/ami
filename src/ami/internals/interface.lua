@@ -26,6 +26,39 @@ function _interface.new(kind, options)
     return _base
 end
 
+---Finds and returns ami entrypoint
+---@return boolean, ExecutableAmiCli, string
+function _interface.find_entrypoint()
+    ---@alias LoaderFn fun(content: string): boolean, ExecutableAmiCli
+
+    ---@type table<string, LoaderFn>
+    local _candidates = {
+        ["ami.lua"] = function (content)
+            local _ok, _subAmiFn = load(content)
+            if not _ok then return false, _subAmiFn end
+            local _ok, _subAmi = pcall(_subAmiFn)
+            if not _ok then return false, _subAmi end
+            return true, _subAmi
+        end,
+        ["ami.json"] = function (content)
+            return hjson.safe_parse(content)
+        end,
+        ["ami.hjson"] = function (content)
+            return hjson.safe_parse(content)
+        end
+    }
+
+    for candidate, loader in pairs(_candidates) do
+        local _ok, _subAmiContent = fs.safe_read_file(candidate)
+        if _ok then
+            log_trace(candidate .. " found loading...")
+            local _ok, _ami = loader(_subAmiContent)
+            return _ok, _ami, candidate
+        end
+    end
+    return false, "Entrypoint interface not found (ami.lua/ami.json/ami.hjson missing)!", nil
+end
+
 ---Loads ExecutableAmiCli from ami.lua using specified base of interfaceKind
 ---@param interfaceKind string
 ---@param shallow boolean

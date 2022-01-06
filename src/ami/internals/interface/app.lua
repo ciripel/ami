@@ -10,16 +10,25 @@ local function _new(options)
     local _implementationStatus = not options.isLoaded and "(not installed)" or "(not implemented)"
     local _implementationError = not options.isLoaded and EXIT_NOT_INSTALLED or EXIT_NOT_IMPLEMENTED
 
+    local function _violation_fallback()
+        -- we falled in default interface... lets verify why
+        local _ok, _entrypoint = am.__find_entrypoint()
+        if not _ok then
+            -- fails with proper error in case of entrypoint not found or invalid
+            print("Failed to load entrypoint:")
+            ami_error(_entrypoint, EXIT_INVALID_AMI_INTERFACE)
+        end
+        -- entrypoint found and loadable but required action undefined
+        ami_error("Violation of AMI standard! " .. _implementationStatus, _implementationError)
+    end
+
     local _base = _amiBase.new()
     _base.commands = {
         info = {
             index = 0,
             description = "ami 'info' sub command",
             summary = _implementationStatus .. " Prints runtime info and status of the app",
-            -- (options, command, args, cli)
-            action = function()
-                ami_error("Violation of AMI standard! " .. _implementationStatus, _implementationError)
-            end
+            action = _violation_fallback
         },
         setup = {
             index = 1,
@@ -79,10 +88,7 @@ local function _new(options)
                     description = "Validates application configuration"
                 }
             },
-            -- (options, command, args, cli)
-            action = function()
-                ami_error("Violation of AMI standard! " .. _implementationStatus, _implementationError)
-            end
+            action = _violation_fallback
         },
         start = {
             index = 3,
@@ -90,18 +96,14 @@ local function _new(options)
             description = "ami 'start' sub command ",
             summary = _implementationStatus .. " Starts the app",
             -- (options, command, args, cli)
-            action = function()
-                ami_error("Violation of AMI standard! " .. _implementationStatus, _implementationError)
-            end
+            action = _violation_fallback
         },
         stop = {
             index = 4,
             description = "ami 'stop' sub command",
             summary = _implementationStatus .. " Stops the app",
             -- (options, command, args, cli)
-            action = function()
-                ami_error("Violation of AMI standard! " .. _implementationStatus, _implementationError)
-            end
+            action = _violation_fallback
         },
         update = {
             index = 5,
@@ -134,7 +136,6 @@ local function _new(options)
                     am.app.remove_data()
                     log_success("Application data removed.")
                 end
-                return
             end
         },
         about = {
@@ -142,9 +143,7 @@ local function _new(options)
             description = "ami 'about' sub command",
             summary = _implementationStatus .. " Prints informations about app",
             -- (options, command, args, cli)
-            action = function()
-                ami_error("Violation of AMI standard! " .. _implementationStatus, _implementationError)
-            end
+            action = _violation_fallback
         }
     }
     return _base

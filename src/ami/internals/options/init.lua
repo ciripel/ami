@@ -46,8 +46,9 @@ local _optionsMeta = {
 }
 
 ---Initializes options object
----@param options table
----@return table
+---@generic T: table
+---@param options T
+---@return T
 return function(options)
     setmetatable(options, _optionsMeta)
     return options
