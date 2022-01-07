@@ -24,10 +24,18 @@ if _parsedOptions.path then
     end
 end
 
-if _parsedOptions.cache then
+if type(_parsedOptions.cache) == "string" then
     am.options.CACHE_DIR = _parsedOptions.cache
 else
+    if _parsedOptions.cache ~= nil then
+        log_warn("Invalid cache directory: " .. tostring(_parsedOptions.cache))
+    end
     am.options.CACHE_DIR = "/var/cache/ami"
+    --fallback to local dir in case we have no access to global one
+    if not fs.safe_write_file(path.combine(am.options.CACHE_DIR, ".ami-test-access"), "") then
+        log_warn("Access to '" .. am.options.CACHE_DIR .. "' denied! Using local '.ami-cache' directory.")
+        am.options.CACHE_DIR = ".ami-cache"
+    end
 end
 
 if _parsedOptions["cache-timeout"] then
