@@ -79,7 +79,7 @@ local function _download_pkg_def(appType, channel)
 
     local _ok, _pkgDefJson = net.safe_download_string(_defUrl)
     if not _ok then
-        return _ok, "Failed to download package definition... ", EXIT_PKG_INVALID_DEFINITION
+        return _ok, "Failed to download package definition - " .. tostring(_pkgDefJson), EXIT_PKG_INVALID_DEFINITION
     end
 
     local _ok, _pkgDef = hjson.safe_parse(_pkgDefJson)
@@ -143,7 +143,7 @@ local function _get_pkg(pkgDef)
 
     local _ok, _error = net.safe_download_file(pkgDef.source, _cachedPkgPath, {followRedirects = true})
     if not _ok then
-        ami_error("Failed to get package " .. _error .. " - " .. (pkgDef.id or _expectedPkgHash), EXIT_PKG_DOWNLOAD_ERROR)
+        ami_error("Failed to get package " .. tostring(_error) .. " - " .. tostring(pkgDef.id or _expectedPkgHash), EXIT_PKG_DOWNLOAD_ERROR)
     end
     local _ok, _hash = fs.safe_hash_file(_cachedPkgPath, {hex = true})
     ami_assert(_ok and _hash == _expectedPkgHash, "Failed to verify package integrity - " .. _expectedPkgHash .. "!", EXIT_PKG_INTEGRITY_CHECK_ERROR)
