@@ -21,6 +21,11 @@ if ! sh "$TMP_NAME"; then
     exit 1
 fi
 
+if ami --version | grep "$LATEST"; then
+    echo "Latest ami already installed."
+    exit 0
+fi
+
 # install ami
 echo "Downloading ami $LATEST..."
 if "$@" "https://github.com/alis-is/ami/releases/download/$LATEST/ami.lua" &&
