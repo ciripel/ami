@@ -6,13 +6,13 @@ Assuming following files exists:
 id: test
 type: test.app
 configuration: {
-   APP_KEY: "<PROD_API_KEY>"
+   API_KEY: "<PROD_API_KEY>"
 }
 ```
 ```hjson
 // app.dev.json
 configuration: {
-   APP_KEY: "<DEV_API_KEY>"
+   API_KEY: "<DEV_API_KEY>"
 }
 ```
 and executing:
@@ -24,6 +24,6 @@ The resulting config ami loads will be:
 id: test
 type: test.app
 configuration: {
-   APP_KEY: "<DEV_API_KEY>"
+   API_KEY: "<DEV_API_KEY>"
 }
 ```
