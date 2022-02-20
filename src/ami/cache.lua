@@ -3,8 +3,8 @@ am.cache = {}
 ---
 ---Deletes content of package cache
 function am.cache.rm_pkgs()
-    fs.remove(am.options.CACHE_DIR_ARCHIVES, { recurse = true, contentOnly = true })
-    fs.remove(am.options.CACHE_DIR_DEFS, { recurse = true, contentOnly = true })
+	fs.remove(am.options.CACHE_DIR_ARCHIVES, { recurse = true, contentOnly = true })
+	fs.remove(am.options.CACHE_DIR_DEFS, { recurse = true, contentOnly = true })
 end
 
 ---#DES am.cache.safe_rm_pkgs
@@ -17,11 +17,11 @@ function am.cache.safe_rm_pkgs() return pcall(am.cache.rm_pkgs) end
 ---
 ---Deletes content of plugin cache
 function am.cache.rm_plugins()
-    if TEST_MODE then
-        am.plugin.__erase_cache()
-    end
-    fs.remove(am.options.CACHE_PLUGIN_DIR_ARCHIVES, { recurse = true, contentOnly = true })
-    fs.remove(am.options.CACHE_PLUGIN_DIR_DEFS, { recurse = true, contentOnly = true })
+	if TEST_MODE then
+		am.plugin.__erase_cache()
+	end
+	fs.remove(am.options.CACHE_PLUGIN_DIR_ARCHIVES, { recurse = true, contentOnly = true })
+	fs.remove(am.options.CACHE_PLUGIN_DIR_DEFS, { recurse = true, contentOnly = true })
 end
 
 ---#DES am.cache.safe_rm_plugins
@@ -34,8 +34,8 @@ function am.cache.safe_rm_plugins() return pcall(am.cache.rm_plugins) end
 ---
 ---Deletes everything from cache
 function am.cache.erase()
-    am.cache.rm_pkgs()
-    am.cache.rm_plugins()
+	am.cache.rm_pkgs()
+	am.cache.rm_plugins()
 end
 
 ---#DES am.cache.safe_erase

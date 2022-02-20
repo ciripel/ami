@@ -1,6 +1,6 @@
-local AM_VERSION = "0.18.0"
+local AM_VERSION = "0.18.1"
 
 return {
-    VERSION = AM_VERSION,
-    ABOUT = "AMI - Application Management Interface - cli " .. AM_VERSION .. " (C) 2022 alis.is"
+	VERSION = AM_VERSION,
+	ABOUT = "AMI - Application Management Interface - cli " .. AM_VERSION .. " (C) 2022 alis.is"
 }

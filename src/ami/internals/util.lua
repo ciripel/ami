@@ -5,14 +5,14 @@ local _util = {}
 ---@vararg string
 ---@return any
 function _util.append_to_url(url, ...)
-    if type(url) == "string" then
-        for _, _arg in ipairs(table.pack(...)) do
-            if type(_arg) == "string" then
-                url = path.combine(url, _arg)
-            end
-        end
-    end
-    return url
+	if type(url) == "string" then
+		for _, _arg in ipairs(table.pack(...)) do
+			if type(_arg) == "string" then
+				url = path.combine(url, _arg)
+			end
+		end
+	end
+	return url
 end
 
 return _util
