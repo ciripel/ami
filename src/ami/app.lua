@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: different-requires
 local _amiPkg = require "ami.internals.pkg"
 local _amiTpl = require "ami.internals.tpl"
 

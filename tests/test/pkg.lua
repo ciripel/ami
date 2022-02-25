@@ -4,6 +4,7 @@ require"tests.test_init"
 
 local stringify = require "hjson".stringify
 
+---@diagnostic disable-next-line: different-requires
 local _amiPkg = require "src.ami.internals.pkg"
 
 local _defaultCwd = os.cwd()

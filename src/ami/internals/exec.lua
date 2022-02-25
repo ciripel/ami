@@ -26,7 +26,13 @@ function exec.external_action(cmd, args, options)
 	if type(options) ~= "table" then options = {} end
 
 	_append_strings(_args, options.injectArgs)
-	_append_strings(_args, table.map(args, function(v) return v.arg end))
+	_append_strings(_args, table.map(args, function(v)
+		if type(v) == "table" then
+			return v.arg
+		elseif type(v) == "string" or type(v) == "number" or type(v) == "boolean" then
+			return tostring(v)
+		end
+	end))
 	_append_strings(_args, options.injectArgsAfter)
 
 	if not proc.EPROC then
