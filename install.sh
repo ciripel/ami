@@ -22,7 +22,7 @@ if ! sh "$TMP_NAME"; then
 fi
 
 if ami --version | grep "$LATEST"; then
-    echo "Latest ami already installed."
+    echo "Latest ami already available."
     exit 0
 fi
 
