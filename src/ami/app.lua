@@ -366,6 +366,7 @@ end
 ---Checks whether app is installed based on app.h/json and .version-tree.json
 ---@return boolean
 function am.app.is_installed()
+	if not am.app.__is_loaded() then am.app.load_configuration() end
 	_normalize_app_pkg_type(__APP)
 
 	local _ok, _verTreeJson = fs.safe_read_file(".version-tree.json")
