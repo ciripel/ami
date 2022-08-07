@@ -53,6 +53,7 @@ To get autocomplete for eli std library you have to:
         "EXIT_SETUP_REQUIRED",
         "EXIT_UNSUPPORTED_PLATFORM",
         "EXIT_MISSING_PERMISSION",
+        "EXIT_INVALID_ELI_VERSION",
         "EXIT_AMI_UPDATE_REQUIRED",
         "EXIT_INVALID_CONFIGURATION",
         "EXIT_INVALID_AMI_VERSION",
