@@ -12,7 +12,7 @@ To get autocomplete for eli std library you have to:
 ```json
     ...,
     "Lua.workspace.library": [
-        "$HOME/lua/meta-definitions/eli"
+        "$HOME/lua/meta-definitions/eli",
         "$HOME/lua/meta-definitions/ami"
     ],
     "Lua.diagnostics.globals": [
