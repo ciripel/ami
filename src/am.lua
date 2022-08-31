@@ -136,9 +136,9 @@ end
 ---@diagnostic disable-next-line: undefined-doc-param
 ---@param action string|function
 ---@diagnostic disable-next-line: undefined-doc-param
----@param args CliArg[]|string[]
+---@param args CliArg[]|string[]|nil
 ---@diagnostic disable-next-line: undefined-doc-param
----@param options ExecNativeActionOptions
+---@param options ExecNativeActionOptions?
 ---@return any
 am.execute_extension = _exec.native_action
 
@@ -148,8 +148,8 @@ am.execute_extension = _exec.native_action
 ---@diagnostic disable-next-line: undefined-doc-param
 ---@param command string
 ---@diagnostic disable-next-line: undefined-doc-param
----@param args CliArg[]
+---@param args CliArg[]?
 ---@diagnostic disable-next-line: undefined-doc-param
----@param injectArgs string[]
+---@param injectArgs string[]?
 ---@return integer
 am.execute_external = _exec.external_action
