@@ -1,4 +1,4 @@
-local AM_VERSION = "0.22.1"
+local AM_VERSION = "0.22.2"
 
 return {
 	VERSION = AM_VERSION,
