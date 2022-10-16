@@ -31,7 +31,8 @@ end
 
 local _cwd = os.cwd() or ""
 os.chdir("../build/luasrcdiet")
-os.execute("eli bin/luasrcdiet ../../bin/ami.lua -o ../../bin/ami-min.lua" ..
+local _eliPath = os.getenv("ELI_PATH") or arg[-1]
+os.execute(_eliPath .. " bin/luasrcdiet ../../bin/ami.lua -o ../../bin/ami-min.lua" ..
 	" --opt-comments --noopt-whitespace --opt-emptylines" ..
 	" --noopt-numbers --noopt-locals" ..
 	" --opt-srcequiv --noopt-binequiv")

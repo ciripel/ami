@@ -62,6 +62,7 @@ jobs:
       - name: build ami
         if: ${{ steps.prep.outputs.NEEDS_RELEASE == 'true'}}
         run: |
+          export ELI_PATH=$PWD/eli
           ./eli ./build/build.lua
           cd .meta && zip ../meta.zip -r * && cd ..
 
