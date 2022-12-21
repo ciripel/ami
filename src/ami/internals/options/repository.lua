@@ -31,7 +31,7 @@ for _, _candidate in ipairs(_mirrors) do
 end
 
 if not DEFAULT_REPOSITORY_URL then
-	print("No default repository available. Please check your internet connection. I will try to use the first mirror in the list.")
+	log_warn("No default repository available. Please check your internet connection. I will try to use the first mirror in the list.")
 	DEFAULT_REPOSITORY_URL = _mirrors[1]
 end
 
