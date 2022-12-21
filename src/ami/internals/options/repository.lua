@@ -16,7 +16,23 @@
 ---@type AmiOptionsPlugin
 local repOpts = {}
 
-local DEFAULT_REPOSITORY_URL = "https://air.alis.is/ami/"
+local _mirrors = {
+	"https://air.alis.is/ami/",
+	"https://raw.githubusercontent.com/alis-is/air/main/ami/"
+}
+
+local DEFAULT_REPOSITORY_URL
+for _, _candidate in ipairs(_mirrors) do
+	local _ok = net.safe_download_string(_candidate .. "TEST", { followRedirects = true })
+	if _ok then
+		DEFAULT_REPOSITORY_URL = _candidate
+		break
+	end
+end
+if not DEFAULT_REPOSITORY_URL then
+	log_warn("No default repository available. Please check your internet connection. I will try to use the first mirror in the list.")
+	DEFAULT_REPOSITORY_URL = _mirrors[1]
+end
 
 function repOpts.index(t, k)
 	if k == "DEFAULT_REPOSITORY_URL" then
