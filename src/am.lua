@@ -13,12 +13,12 @@
 -- You should have received a copy of the GNU Affero General Public License
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+require "ami.globals"
+
 local _cli = require "ami.internals.cli"
 local _exec = require "ami.internals.exec"
 local _interface = require "ami.internals.interface"
 local _initialize_options = require "ami.internals.options.init"
-
-require "ami.globals"
 
 ami_assert(ver.compare(ELI_LIB_VERSION, "0.25.7") >= 0, "Invalid ELI_LIB_VERSION (" .. tostring(ELI_LIB_VERSION) .. ")!", EXIT_INVALID_ELI_VERSION)
 
