@@ -139,7 +139,7 @@ end
 ---Gets valua from path in app model or falls back to default if value in path is nil
 ---@param value any
 ---@param path (string|string[]|SetModelOptions)?
----@param options SetModelOptions
+---@param options SetModelOptions?
 function am.app.set_model(value, path, options)
 	if not __modelLoaded then
 		am.app.load_model()
