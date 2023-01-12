@@ -106,7 +106,7 @@ end
 ---
 ---Parses provided args in respect to ami base
 ---@param cmd string|string[]
----@param options AmiPrintHelpOptions
+---@param options AmiPrintHelpOptions?
 function am.print_help(cmd, options)
 	if not cmd then
 		cmd = am.__interface

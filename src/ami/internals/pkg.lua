@@ -148,10 +148,12 @@ local function _get_pkg(pkgDef)
 	local _tmpPkgPath = os.tmpname()
 	if am.options.CACHE_DISABLED ~= true then
 		local _ok, _err = am.cache.get_to_file("package-archive", _pkgId, _tmpPkgPath,
-			{ sha256 = am.options.NO_INTEGRITY_CHECKS ~= true and pkgDef.sha256 or nil, sha512 = am.options.NO_INTEGRITY_CHECKS ~= true and pkgDef.sha256 or nil })
+			{ sha256 = am.options.NO_INTEGRITY_CHECKS ~= true and pkgDef.sha256 or nil, sha512 = am.options.NO_INTEGRITY_CHECKS ~= true and pkgDef.sha512 or nil })
 		if _ok then
 			log_trace("Using cached version of " .. _pkgId)
 			return _pkgId, _tmpPkgPath
+		else
+			log_trace("INTERNAL ERROR: Failed to get package from cache: " .. tostring(_err))
 		end
 	end
 
