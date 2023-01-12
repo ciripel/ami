@@ -24,6 +24,9 @@ local tpl = {
 ---@return table
 local function _to_renderable_data(source)
 	local _result = {}
+	if not source then
+		return _result
+	end
 	for key, value in pairs(source) do
 		_result[key] = value
 		if type(value) == "table" and not util.is_array(value) then
