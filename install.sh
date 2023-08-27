@@ -21,12 +21,15 @@ fi
 echo "Downloading eli setup script..."
 if ! "$@" https://raw.githubusercontent.com/alis-is/eli/master/install.sh; then
     echo "Failed to download eli, please retry ... "
+    rm "$TMP_NAME"
     exit 1
 fi
 if ! sh "$TMP_NAME"; then
     echo "Failed to download eli, please retry ... "
+    rm "$TMP_NAME"
     exit 1
 fi
+rm "$TMP_NAME"
 
 if ami --version | grep "$LATEST"; then
     echo "Latest ami already available."
