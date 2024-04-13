@@ -43,7 +43,7 @@ _test["load valid ami violating app starndard"] = function()
 	am.execute("about")
 	os.chdir(_defaultCwd)
 	print = _default_print
-	_test.assert(_result:match("Violation of AMI standard!"))
+	_test.assert(_result:match("Violation of AMI@app standard!"))
 end
 
 if not TEST then

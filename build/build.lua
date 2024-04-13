@@ -44,7 +44,7 @@ os.chdir(_cwd)
 local _content = fs.read_file("../bin/ami.lua")
 local _, _shebangEnd = _content:find("#!/%S*")
 local _license = [[
--- Copyright (C) 2022 alis.is
+-- Copyright (C) 2024 alis.is
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU Affero General Public License as published

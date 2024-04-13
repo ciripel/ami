@@ -1,4 +1,4 @@
--- Copyright (C) 2022 alis.is
+-- Copyright (C) 2024 alis.is
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU Affero General Public License as published
@@ -213,15 +213,16 @@ function _pkg.prepare_pkg(appType)
 		local _tmp = os.tmpname()
 		local _ok, _error = zip.safe_compress(_localSource, _tmp, { recurse = true, overwrite = true })
 		if not _ok then
-			fs.remove(_tmp)
+			fs.safe_remove(_tmp)
 			ami_error("Failed to compress local source directory: " .. (_error or ""), EXIT_PKG_LOAD_ERROR)
 		end
 		local _ok, _hash = fs.safe_hash_file(_tmp, { hex = true })
 		if not _ok then
-			fs.remove(_tmp)
+			fs.safe_remove(_tmp)
 			ami_error("Failed to load package from local sources", EXIT_PKG_INTEGRITY_CHECK_ERROR)
 		end
 		am.cache.put_from_file(_tmp, "package-archive",  _hash)
+		fs.safe_remove(_tmp)
 		_pkgDef = { sha256 = _hash, id = "debug-dir-pkg" }
 	else
 		_ok, _pkgDef = _get_pkg_def(appType)

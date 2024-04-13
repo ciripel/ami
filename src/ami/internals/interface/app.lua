@@ -1,4 +1,4 @@
--- Copyright (C) 2022 alis.is
+-- Copyright (C) 2024 alis.is
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU Affero General Public License as published
@@ -34,7 +34,7 @@ local function _new(options)
             ami_error(_entrypoint --[[@as string]], EXIT_INVALID_AMI_INTERFACE)
         end
         -- entrypoint found and loadable but required action undefined
-        ami_error("Violation of AMI standard! " .. _implementationStatus, _implementationError)
+        ami_error("Violation of AMI@app standard! " .. _implementationStatus, _implementationError)
     end
 
     local _base = _amiBase.new()

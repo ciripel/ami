@@ -1,4 +1,4 @@
--- Copyright (C) 2022 alis.is
+-- Copyright (C) 2024 alis.is
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU Affero General Public License as published
@@ -49,7 +49,6 @@ local function _get_plugin_def(name, version)
 		_defUrl = _util.append_to_url(am.options.DEFAULT_REPOSITORY_URL, "plugin", name, "v", version .. ".json")
 	end
 
-	local _defLocalPath = os.tmpname()
 	if am.options.CACHE_DISABLED ~= true then
 		local _ok, _pluginDefJson = am.cache.get("plugin-definition", _pluginId)
 		if _ok then
@@ -148,7 +147,7 @@ function am.plugin.get(name, options)
 		log_trace(not _downloadRequired and "Plugin package found..." or "Plugin package not found or verification failed, downloading... ")
 
 		if _downloadRequired then
-			local _ok = net.safe_download_file(_pluginDefinition.source, _archivePath, { followRedirects = true })
+			local _ok = net.safe_download_file(_pluginDefinition.source, _archivePath, { followRedirects = true, showDefaultProgress = true })
 			local _ok2, _hash = fs.safe_hash_file(_archivePath, { hex = true })
 			if not _ok or not _ok2 or not hash.hex_equals(_hash, _pluginDefinition.sha256) then
 				fs.safe_remove(_archivePath)
@@ -170,6 +169,7 @@ function am.plugin.get(name, options)
 
 		local _ok, _error = zip.safe_extract(_archivePath, _loadDir, { flattenRootDir = true })
 		if not _ok then
+			fs.safe_remove(_archivePath)
 			ami_error(string.join_strings("", "Failed to extract plugin package: ", _pluginId, " - ", _error), EXIT_PLUGIN_LOAD_ERROR, options)
 			return false, nil
 		end

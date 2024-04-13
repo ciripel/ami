@@ -1,4 +1,4 @@
--- Copyright (C) 2022 alis.is
+-- Copyright (C) 2024 alis.is
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU Affero General Public License as published
@@ -17,12 +17,13 @@ local _interface = {}
 
 local _kindMap = {
 	base = require "ami.internals.interface.base",
-	app = require "ami.internals.interface.app"
+	app = require "ami.internals.interface.app",
+	tool = require "ami.internals.interface.tool",
 }
 
 ---Creates new ExecutableAmiCli
 ---@param kind string
----@param options AmiCliGeneratorOptions
+---@param options AmiCliGeneratorOptions?
 ---@return ExecutableAmiCli
 function _interface.new(kind, options)
 	local _base = _kindMap[kind]
