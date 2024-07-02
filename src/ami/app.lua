@@ -23,21 +23,21 @@ am.app = {}
 local __APP = {}
 ---@type table
 local __model = {}
-local __loaded = false
-local __modelLoaded = false
+local isLoaded = false
+local isModeLoaded = false
 
 ---Returns true of app configuration is loaded
 ---@return boolean
 function am.app.__is_loaded()
-	return __loaded
+	return isLoaded
 end
 
 if TEST_MODE then
 	---Sets internal state of app configuration being loaded
 	---@param value boolean
 	function am.app.__set_loaded(value)
-		__loaded = value
-		__modelLoaded = value
+		isLoaded = value
+		isModeLoaded = value
 	end
 
 	---Returns loaded APP
@@ -47,130 +47,12 @@ if TEST_MODE then
 	end
 end
 
----Replaces loaded APP with app
----@param app table
-function am.app.__set(app)
-	if not TEST_MODE then
-		log_warn("App override detected.eli")
-	end
-	__APP = app
-end
-
----#DES am.app.get
----
----Gets valua from path in APP or falls back to default if value in path is nil
----@param path string|string[]
----@param default any?
----@return any
-function am.app.get(path, default)
-	return table.get(__APP, path, default)
-end
-
----#DES am.app.get_configuration
----
----Gets valua from path in app.configuration or falls back to default if value in path is nil
----@param path (string|string[])?
----@param default any?
----@return any
-function am.app.get_configuration(path, default)
-	if path ~= nil then
-		return table.get(__APP.configuration or __APP.config, path, default)
-	end
-	local _result = __APP.configuration or __APP.config
-	if _result == nil then
-		return default
-	end
-	return _result
-end
-
----#DES am.app.get_config
----
----Gets valua from path in app.configuration or falls back to default if value in path is nil
----@deprecated
----@param path string|string[]
----@param default any?
----@return any
-function am.app.get_config(path, default)
-	return am.app.get_configuration(path, default)
-end
-
----#DES am.app.load_model
----
----Loads app model from model.lua
-function am.app.load_model()
-	local _path = "model.lua"
-	log_trace("Loading application model...")
-	if not fs.exists(_path) then
-		return
-	end
-	__modelLoaded = true -- without this we would be caught in infinite recursion of loading model on demand
-	local _ok, _error = pcall(dofile, _path)
-	if not _ok then
-		__modelLoaded = false
-		ami_error("Failed to load app model - " .. _error, EXIT_APP_INVALID_MODEL)
-	end
-end
-
----#DES am.app.get_model
----
----Gets valua from path in app model or falls back to default if value in path is nil
----@param path (string|string[])?
----@param default any?
----@return any
-function am.app.get_model(path, default)
-	if not __modelLoaded then
-		am.app.load_model()
-	end
-	if path ~= nil then
-		return table.get(__model, path, default)
-	end
-	if __model == nil then
-		return default
-	end
-	return __model
-end
-
----@class SetModelOptions
----@field overwrite boolean
----@field merge boolean
-
----#DES am.app.set_model
----
----Gets valua from path in app model or falls back to default if value in path is nil
----@param value any
----@param path (string|string[]|SetModelOptions)?
----@param options SetModelOptions?
-function am.app.set_model(value, path, options)
-	if not __modelLoaded then
-		am.app.load_model()
-	end
-
-	if type(path) == "table" and not util.is_array(path) then
-		options = path
-		path = nil
-	end
-	if type(options) ~= "table" then
-		options = {}
-	end
-
-	if path == nil then
-		if options.merge then
-			__model = util.merge_tables(__model, value, options.overwrite)
-		else
-			__model = value
-		end
-	else
-		local _original = table.get(__model, path)
-		if options.merge and type(_original) == "table" and type(value) == "table" then
-			value = util.merge_tables(_original, value, options.overwrite)
-		end
-		table.set(__model, path--[[@as string|string[] ]] , value)
-	end
-end
-
 ---Normalizes pkg type
 ---@param pkg table
 local function _normalize_app_pkg_type(pkg)
+	if not pkg.type then
+		return
+	end
 	if type(pkg.type) == "string" then
 		pkg.type = {
 			id = pkg.type,
@@ -227,23 +109,154 @@ local function _load_configuration_content(path)
 		true), { indent = false })
 end
 
+local function _load_configuration(path)
+	local _configContent = _load_configuration_content(path)
+	local _ok, _app = hjson.safe_parse(_configContent)
+	ami_assert(_ok, "Failed to parse app.h/json - " .. tostring(_app), EXIT_INVALID_CONFIGURATION)
+
+	am.app.__set(_app)
+	local _variables = am.app.get("variables", {})
+	local _options = am.app.get("options", {})
+	_variables = util.merge_tables(_variables, { ROOT_DIR = os.EOS and os.cwd() or "." }, true)
+	_configContent = am.util.replace_variables(_configContent, _variables, _options)
+	am.app.__set(hjson.parse(_configContent))
+end
+
+---Replaces loaded APP with app
+---@param app table
+function am.app.__set(app)
+	if not TEST_MODE then
+		log_warn("App override detected.eli")
+	end
+	__APP = app
+	_normalize_app_pkg_type(__APP)
+	isLoaded = true
+end
+
+---#DES am.app.get
+---
+---Gets valua from path in APP or falls back to default if value in path is nil
+---@param path string|string[]
+---@param default any?
+---@return any
+function am.app.get(path, default)
+	if not isLoaded then
+		_load_configuration()
+	end
+	return table.get(__APP, path, default)
+end
+
+---#DES am.app.get_configuration
+---
+---Gets valua from path in app.configuration or falls back to default if value in path is nil
+---@param path (string|string[])?
+---@param default any?
+---@return any
+function am.app.get_configuration(path, default)
+	if not isLoaded then
+		_load_configuration()
+	end
+	if path ~= nil then
+		return table.get(am.app.get("configuration"), path, default)
+	end
+	local _result = am.app.get("configuration")
+	if _result == nil then
+		return default
+	end
+	return _result
+end
+
+---#DES am.app.get_config
+---
+---Gets valua from path in app.configuration or falls back to default if value in path is nil
+---@deprecated
+---@param path string|string[]
+---@param default any?
+---@return any
+function am.app.get_config(path, default)
+	return am.app.get_configuration(path, default)
+end
+
+---#DES am.app.load_model
+---
+---Loads app model from model.lua
+function am.app.load_model()
+	local _path = "model.lua"
+	log_trace("Loading application model...")
+	if not fs.exists(_path) then
+		return
+	end
+	isModeLoaded = true -- without this we would be caught in infinite recursion of loading model on demand
+	local _ok, _error = pcall(dofile, _path)
+	if not _ok then
+		isModeLoaded = false
+		ami_error("Failed to load app model - " .. _error, EXIT_APP_INVALID_MODEL)
+	end
+end
+
+---#DES am.app.get_model
+---
+---Gets valua from path in app model or falls back to default if value in path is nil
+---@param path (string|string[])?
+---@param default any?
+---@return any
+function am.app.get_model(path, default)
+	if not isModeLoaded then
+		am.app.load_model()
+	end
+	if path ~= nil then
+		return table.get(__model, path, default)
+	end
+	if __model == nil then
+		return default
+	end
+	return __model
+end
+
+---@class SetModelOptions
+---@field overwrite boolean
+---@field merge boolean
+
+---#DES am.app.set_model
+---
+---Gets valua from path in app model or falls back to default if value in path is nil
+---@param value any
+---@param path (string|string[]|SetModelOptions)?
+---@param options SetModelOptions?
+function am.app.set_model(value, path, options)
+	if not isModeLoaded then
+		am.app.load_model()
+	end
+
+	if type(path) == "table" and not util.is_array(path) then
+		options = path
+		path = nil
+	end
+	if type(options) ~= "table" then
+		options = {}
+	end
+
+	if path == nil then
+		if options.merge then
+			__model = util.merge_tables(__model, value, options.overwrite)
+		else
+			__model = value
+		end
+	else
+		local _original = table.get(__model, path)
+		if options.merge and type(_original) == "table" and type(value) == "table" then
+			value = util.merge_tables(_original, value, options.overwrite)
+		end
+		table.set(__model, path--[[@as string|string[] ]] , value)
+	end
+end
+
 ---#DES am.app.load_configuration
 ---
 ---Loads APP from path
 ---@param path string?
 function am.app.load_configuration(path)
-	local _configContent = _load_configuration_content(path)
-	local _ok, _app = hjson.safe_parse(_configContent)
-	ami_assert(_ok, "Failed to parse app.h/json - " .. tostring(_app), EXIT_INVALID_CONFIGURATION)
-
-	__APP = _app
-	local _variables = am.app.get("variables", {})
-	local _options = am.app.get("options", {})
-	_variables = util.merge_tables(_variables, { ROOT_DIR = os.EOS and os.cwd() or "." }, true)
-	_configContent = am.util.replace_variables(_configContent, _variables, _options)
-	__APP = hjson.parse(_configContent)
-	_normalize_app_pkg_type(__APP)
-	__loaded = true
+	_load_configuration(path)
 end
 
 ---#DES am.app.load_config
@@ -258,7 +271,7 @@ am.app.load_config = am.app.load_configuration
 ---Prepares app environment - extracts layers and builds model.
 function am.app.prepare()
 	log_info("Preparing the application...")
-	local _fileList, _modelInfo, _verTree, _tmpPkgs = _amiPkg.prepare_pkg(__APP.type)
+	local _fileList, _modelInfo, _verTree, _tmpPkgs = _amiPkg.prepare_pkg(am.app.get("type"))
 
 	_amiPkg.unpack_layers(_fileList)
 	_amiPkg.generate_model(_modelInfo)
@@ -267,7 +280,7 @@ function am.app.prepare()
 	end
 	fs.write_file(".version-tree.json", hjson.stringify_to_json(_verTree))
 
-	__modelLoaded = false -- force mode load on next access
+	isModeLoaded = false -- force mode load on next access
 	am.app.load_configuration()
 end
 
@@ -289,8 +302,6 @@ end
 ---Returns true if there is update available for any of related packages
 ---@return boolean
 function am.app.is_update_available()
-	_normalize_app_pkg_type(__APP)
-
 	local _ok, _verTreeJson = fs.safe_read_file(".version-tree.json")
 	if _ok then
 		local _ok, _verTree = hjson.safe_parse(_verTreeJson)
@@ -305,7 +316,7 @@ function am.app.is_update_available()
 	ami_assert(_ok, "Failed to load app specs.json", EXIT_APP_UPDATE_ERROR)
 	local _ok, _specs = hjson.parse(_specsFile)
 	ami_assert(_ok, "Failed to parse app specs.json", EXIT_APP_UPDATE_ERROR)
-	return _amiPkg.is_pkg_update_available(__APP.type, _specs and _specs.version)
+	return _amiPkg.is_pkg_update_available(am.app.get("type"), _specs and _specs.version)
 end
 
 ---#DES am.app.get_version
@@ -313,8 +324,6 @@ end
 ---Returns app version
 ---@return string|'"unknown"'
 function am.app.get_version()
-	_normalize_app_pkg_type(__APP)
-
 	local _ok, _verTreeJson = fs.safe_read_file(".version-tree.json")
 	if _ok then
 		local _ok, _verTree = hjson.safe_parse(_verTreeJson)
@@ -331,16 +340,18 @@ end
 ---Returns app type
 ---@return string
 function am.app.get_type()
-	if type(__APP.type) ~= "table" then
-		return __APP.type
+	if type(am.app.get("type")) ~= "table" then
+		return am.app.get("type")
 	end
 	-- we want to get app type nicely formatted
-	local _result = __APP.type.id
-	if type(__APP.version) == "string" then
-		_result = _result .. "@" .. __APP.version
+	local _result = am.app.get({"type", "id"})
+	local version = am.app.get({"type", "version"})
+	if type(version) == "string" then
+		_result = _result .. "@" .. version
 	end
-	if type(__APP.type.repository) == "string" and __APP.type.repository ~= am.options.DEFAULT_REPOSITORY_URL then
-		_result = _result .. "[" .. __APP.type.repository .. "]"
+	local repository = am.app.get({"type", "repository"})
+	if type(repository) == "string" and repository ~= am.options.DEFAULT_REPOSITORY_URL then
+		_result = _result .. "[" .. repository .. "]"
 	end
 	return _result
 end
@@ -409,13 +420,11 @@ end
 ---Checks whether app is installed based on app.h/json and .version-tree.json
 ---@return boolean
 function am.app.is_installed()
-	if not am.app.__is_loaded() then am.app.load_configuration() end
-	_normalize_app_pkg_type(__APP)
-
 	local _ok, _verTreeJson = fs.safe_read_file(".version-tree.json")
 	if not _ok then return false end
 	local _ok, _verTree = hjson.safe_parse(_verTreeJson)
 	if not _ok then return false end
 
-	return __APP.type.id == _verTree.id and (__APP.type.version == "latest" or __APP.version == _verTree.version)
+	local version = am.app.get({"type", "version"})
+	return am.app.get({"type", "id"}) == _verTree.id and (version == "latest" or version == _verTree.version)
 end

@@ -1,10 +1,10 @@
-local _test = TEST or require "tests.vendor.u-test"
+local test = TEST or require "tests.vendor.u-test"
 
 require"tests.test_init"
 
 local _defaultCwd = os.cwd()
 
-_test["load valid ami"] = function()
+test["load valid ami"] = function()
 	os.chdir("tests/assets/interfaces/valid-ami")
 	local _default_print = print
 	local _result
@@ -15,10 +15,10 @@ _test["load valid ami"] = function()
 	am.execute("about")
 	os.chdir(_defaultCwd)
 	print = _default_print
-	_test.assert(_result == "test app")
+	test.assert(_result == "test app")
 end
 
-_test["load invalid ami"] = function()
+test["load invalid ami"] = function()
 	os.chdir("tests/assets/interfaces/invalid-ami")
 	local _default_print = print
 	local _result = ""
@@ -29,10 +29,10 @@ _test["load invalid ami"] = function()
 	am.execute("about")
 	os.chdir(_defaultCwd)
 	print = _default_print
-	_test.assert(_result:match("Failed to load entrypoint:"))
+	test.assert(_result:match("Failed to load entrypoint:"))
 end
 
-_test["load valid ami violating app starndard"] = function()
+test["load valid ami violating app starndard"] = function()
 	os.chdir("tests/assets/interfaces/valid-ami-violating")
 	local _default_print = print
 	local _result
@@ -43,9 +43,9 @@ _test["load valid ami violating app starndard"] = function()
 	am.execute("about")
 	os.chdir(_defaultCwd)
 	print = _default_print
-	_test.assert(_result:match("Violation of AMI@app standard!"))
+	test.assert(_result:match("Violation of AMI@app standard!"))
 end
 
 if not TEST then
-    _test.summary()
+    test.summary()
 end

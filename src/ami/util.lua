@@ -18,15 +18,15 @@ local _lustache = require 'lustache'
 am.util = {}
 
 ---@class ReplaceVariablesOptions
----@field used table
----@field cache table
----@field replaceMustache boolean
----@field replaceArrow boolean
+---@field used table?
+---@field cache table?
+---@field replaceMustache boolean?
+---@field replaceArrow boolean?
 
 ---Appends parts to url
 ---@param content string
 ---@param variables table
----@param options ReplaceVariablesOptions
+---@param options ReplaceVariablesOptions?
 ---@return string
 function am.util.replace_variables(content, variables, options)
 	if type(options) ~= 'table' then

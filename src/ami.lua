@@ -126,10 +126,6 @@ if _parsedOptions["dry-run"] then
 	os.exit(0)
 end
 
-if not am.app.__is_loaded() then
-	am.app.load_configuration()
-end
-
 am.__reload_interface(am.options.SHALLOW)
 
 am.execute({ ... })
