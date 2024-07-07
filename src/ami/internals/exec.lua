@@ -16,9 +16,10 @@
 local exec = {}
 
 ---@class ExternalActionOptions
----@field injectArgs string[]
----@field injectArgsAfter string[]
----@field environment table<string, string>
+---@field injectArgs string[]?
+---@field injectArgsAfter string[]?
+---@field stdio ActionStdioType
+---@field environment table<string, string>?
 
 ---@param destTable string[]
 ---@param toAppend string[]
@@ -65,13 +66,19 @@ function exec.external_action(cmd, args, options)
 		ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
 		return _result.exitcode
 	end
-	local _ok, _result = proc.safe_spawn(cmd, _args, { wait = true, stdio = "ignore", env = options.environment })
+
+	local desiredStdio = "inherit"
+	if options.stdio ~= nil then
+		desiredStdio = options.stdio
+	end
+
+	local _ok, _result = proc.safe_spawn(cmd, _args, { wait = true, stdio = desiredStdio, env = options.environment })
 	ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
 	return _result.exitcode
 end
 
 ---@class ExecNativeActionOptions
----@field contextFailExitCode number
+---@field contextFailExitCode number?
 ---@field errorMsg string|nil
 ---@field partialErrorMsg string|nil
 

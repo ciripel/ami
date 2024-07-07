@@ -79,7 +79,7 @@ local function _get_plugin_def(name, version)
 
 		_ok = _ok and am.cache.put(_pluginDefJson, "plugin-definition", _pluginId)
 		if _ok then
-			log_trace("Local copy of " .. _pluginId .. " definition saved into " .. _defLocalPath)
+			log_trace("Local copy of " .. _pluginId .. " definition saved into cache")
 		else
 			-- it is not necessary to save definition locally as we hold version in memory already
 			log_trace("Failed to create local copy of " .. _pluginId .. " definition!")
@@ -91,8 +91,8 @@ local function _get_plugin_def(name, version)
 end
 
 ---@class AmiGetPluginOptions: AmiErrorOptions
----@field version string
----@field safe boolean
+---@field version string?
+---@field safe boolean?
 
 ---#DES am.plugin.get
 ---
@@ -148,8 +148,8 @@ function am.plugin.get(name, options)
 
 		if _downloadRequired then
 			local _ok = net.safe_download_file(_pluginDefinition.source, _archivePath, { followRedirects = true, showDefaultProgress = true })
-			local _ok2, _hash = fs.safe_hash_file(_archivePath, { hex = true })
-			if not _ok or not _ok2 or not hash.hex_equals(_hash, _pluginDefinition.sha256) then
+			local _ok2, _hash = fs.safe_hash_file(_archivePath, { hex = true, type = "sha256" })
+			if not _ok or not _ok2 or not hash.equals(_hash, _pluginDefinition.sha256, true) then
 				fs.safe_remove(_archivePath)
 				ami_error("Failed to verify package integrity - " .. _pluginId .. "!", EXIT_PLUGIN_DOWNLOAD_ERROR, options)
 				return false, nil

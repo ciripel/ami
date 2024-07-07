@@ -12,8 +12,6 @@
 
 -- You should have received a copy of the GNU Affero General Public License
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
----@type AmiOptionsPlugin
 local cacheOpts = {}
 
 local CACHE_DIR = nil
@@ -70,4 +68,4 @@ function cacheOpts.newindex(t, k, v)
 	return false
 end
 
-return cacheOpts
+return cacheOpts --[[@as AmiOptionsPlugin]]

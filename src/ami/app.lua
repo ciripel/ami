@@ -214,8 +214,8 @@ function am.app.get_model(path, default)
 end
 
 ---@class SetModelOptions
----@field overwrite boolean
----@field merge boolean
+---@field overwrite boolean?
+---@field merge boolean?
 
 ---#DES am.app.set_model
 ---
@@ -370,13 +370,13 @@ function am.app.remove_data(keep)
 		end, _protectedFiles)
 	end
 
-	local _ok, _error = fs.safe_remove("data", { recurse = true, contentOnly = true, keep = function(p, fp)
+	local _ok, _error = fs.safe_remove("data", { recurse = true, contentOnly = true, keep = function(p, _)
 		local _np = path.normalize(p, "unix", { endsep = "leave" })
 		if _protectedFiles[_np] then
 			return true
 		end
 		if type(keep) == "function" then
-			return keep(p, fp)
+			return keep(p)
 		end
 	end })
 	ami_assert(_ok, "Failed to remove app data - " .. tostring(_error) .. "!", EXIT_RM_DATA_ERROR)

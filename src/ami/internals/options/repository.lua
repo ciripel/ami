@@ -13,7 +13,6 @@
 -- You should have received a copy of the GNU Affero General Public License
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
----@type AmiOptionsPlugin
 local repOpts = {}
 
 local _mirrors = {
@@ -52,4 +51,4 @@ function repOpts.newindex(t, k, v)
 	return false
 end
 
-return repOpts
+return repOpts --[[@as AmiOptionsPlugin]]

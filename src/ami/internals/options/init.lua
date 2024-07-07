@@ -20,7 +20,7 @@ local _repOptHooks = require "ami.internals.options.repository"
 ---@alias AmiOptionsNewIndexHook fun(t: table, k: any, v:any): boolean
 
 ---@class AmiOptionsPlugin
----@field index fun(t: table, k: any): any
+---@field index fun(t: table, k: any): boolean, any
 ---@field newindex fun(t: table, k: any, v:any): boolean
 
 ---@type AmiOptionsIndexHook[]

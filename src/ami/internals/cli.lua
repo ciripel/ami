@@ -98,8 +98,8 @@ end
     @param {table{}} commands
 ]]
 ---@class AmiParseArgsOptions
----@field stopOnNonOption boolean
----@field nonCommand boolean
+---@field stopOnNonOption boolean?
+---@field nonCommand boolean?
 
 
 ---Parses arguments in respect to cli scheme

@@ -37,7 +37,7 @@ local function _new(options)
         ami_error("Violation of AMI@app standard! " .. _implementationStatus, _implementationError)
     end
 
-    local _base = _amiBase.new()
+    local _base = _amiBase.new() --[[@as ExecutableAmiCli]]
     _base.commands = {
         info = {
             index = 0,
@@ -165,7 +165,7 @@ local function _new(options)
             action = _violation_fallback
         }
     }
-    return _base --[[@as ExecutableAmiCli]]
+    return _base 
 end
 
 return {

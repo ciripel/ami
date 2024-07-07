@@ -216,7 +216,7 @@ function _pkg.prepare_pkg(appType)
 			fs.safe_remove(_tmp)
 			ami_error("Failed to compress local source directory: " .. (_error or ""), EXIT_PKG_LOAD_ERROR)
 		end
-		local _ok, _hash = fs.safe_hash_file(_tmp, { hex = true })
+		local _ok, _hash = fs.safe_hash_file(_tmp, { hex = true, type = "sha256" })
 		if not _ok then
 			fs.safe_remove(_tmp)
 			ami_error("Failed to load package from local sources", EXIT_PKG_INTEGRITY_CHECK_ERROR)

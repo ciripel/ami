@@ -75,8 +75,8 @@ local function _internal_cache_get(kind, id, options)
 	if not _f then return false, (_err or "unknown error") end
 
 	if type(options.sha256) == "string" and options.sha256 ~= "" then
-		local _ok, _hash = fs.safe_hash_file(_f, { hex = true })
-		if not _ok or not hash.equals(_hash, options.sha256) then
+		local _ok, _hash = fs.safe_hash_file(_f, { hex = true, type = "sha256" })
+		if not _ok or not hash.equals(_hash, options.sha256, true) then
 			return false, "invalid hash"
 		end
 		_f:seek("set")
@@ -84,7 +84,7 @@ local function _internal_cache_get(kind, id, options)
 
 	if type(options.sha512) == "string" and options.sha512 ~= "" then
 		local _ok, _hash = fs.safe_hash_file(_f, { hex = true, type = "sha512" })
-		if not _ok or not hash.equals(_hash, options.sha512) then
+		if not _ok or not hash.equals(_hash, options.sha512, true) then
 			return false, "invalid hash"
 		end
 		_f:seek("set")
@@ -107,7 +107,9 @@ function am.cache.get(kind, id, options)
 	local _ok, _result = _internal_cache_get(kind, id, options)
 	if not _ok then return _ok, _result end
 
-	return _ok, _result:read("a")
+	local file = _result --[[@as file*]]
+
+	return _ok, file:read("a")
 end
 
 ---#DES am.cache.get_to_file
