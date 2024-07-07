@@ -60,9 +60,9 @@ local function _get_plugin_def(name, version)
 		end
 	end
 
-	local _ok, _pluginDefJson = net.safe_download_string(_defUrl)
+	local _ok, _pluginDefJson, status = net.safe_download_string(_defUrl)
 	ami_assert(
-		_ok,
+		_ok and status / 100 == 2,
 		string.join_strings("", "Failed to download ", _pluginId, " definition: ", _pluginDefJson),
 		EXIT_PLUGIN_INVALID_DEFINITION
 	)

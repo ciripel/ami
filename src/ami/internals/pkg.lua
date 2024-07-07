@@ -95,9 +95,9 @@ local function _download_pkg_def(appType, channel)
 		end
 	end
 
-	local _ok, _pkgDefJson = net.safe_download_string(_defUrl)
-	if not _ok then
-		return _ok, "Failed to download package definition - " .. tostring(_pkgDefJson), EXIT_PKG_INVALID_DEFINITION
+	local _ok, _pkgDefJson, status = net.safe_download_string(_defUrl)
+	if not _ok or status / 100 ~= 2 then
+		return false, "Failed to download package definition - " .. tostring(_pkgDefJson), EXIT_PKG_INVALID_DEFINITION
 	end
 
 	local _ok, _pkgDef = hjson.safe_parse(_pkgDefJson)
