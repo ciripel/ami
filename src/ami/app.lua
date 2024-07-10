@@ -32,21 +32,6 @@ function am.app.__is_loaded()
 	return isLoaded
 end
 
-if TEST_MODE then
-	---Sets internal state of app configuration being loaded
-	---@param value boolean
-	function am.app.__set_loaded(value)
-		isLoaded = value
-		isModeLoaded = value
-	end
-
-	---Returns loaded APP
-	---@return table
-	function am.app.__get()
-		return __APP
-	end
-end
-
 ---Normalizes pkg type
 ---@param pkg table
 local function _normalize_app_pkg_type(pkg)
@@ -64,6 +49,36 @@ local function _normalize_app_pkg_type(pkg)
 	ami_assert(type(_type) == "table", "Invalid pkg type!", EXIT_PKG_INVALID_TYPE)
 	if type(_type.repository) ~= "string" then
 		_type.repository = am.options.DEFAULT_REPOSITORY_URL
+	end
+end
+
+---Replaces loaded APP with app
+---@param app table
+local function __set(app)
+	__APP = app
+	_normalize_app_pkg_type(__APP)
+	isLoaded = true
+end
+
+
+if TEST_MODE then
+	---Sets internal state of app configuration being loaded
+	---@param value boolean
+	function am.app.__set_loaded(value)
+		isLoaded = value
+		isModeLoaded = value
+	end
+
+	---Returns loaded APP
+	---@return table
+	function am.app.__get()
+		return __APP
+	end
+
+	---Replaces loaded APP with app
+	---@param app table
+	function am.app.__set(app)
+		return __set(app)
 	end
 end
 
@@ -114,24 +129,14 @@ local function _load_configuration(path)
 	local _ok, _app = hjson.safe_parse(_configContent)
 	ami_assert(_ok, "Failed to parse app.h/json - " .. tostring(_app), EXIT_INVALID_CONFIGURATION)
 
-	am.app.__set(_app)
+	__set(_app)
 	local _variables = am.app.get("variables", {})
 	local _options = am.app.get("options", {})
 	_variables = util.merge_tables(_variables, { ROOT_DIR = os.EOS and os.cwd() or "." }, true)
 	_configContent = am.util.replace_variables(_configContent, _variables, _options)
-	am.app.__set(hjson.parse(_configContent))
+	__set(hjson.parse(_configContent))
 end
 
----Replaces loaded APP with app
----@param app table
-function am.app.__set(app)
-	if not TEST_MODE then
-		log_warn("App override detected.eli")
-	end
-	__APP = app
-	_normalize_app_pkg_type(__APP)
-	isLoaded = true
-end
 
 ---#DES am.app.get
 ---
