@@ -220,6 +220,14 @@ test["process cli (extension)"] = function()
 end
 
 test["process cli (external)"] = function()
+	local osExit = os.exit
+
+	local recordedExitCode = nil
+	os.exit = function(exitcode)
+		recordedExitCode = exitcode
+	end
+
+
 	local _cli = {
 		title = "test cli2",
 		description = "test cli description",
@@ -241,21 +249,21 @@ test["process cli (external)"] = function()
 
 	local _argListInit = _isUnixLike and { "test", "-c" } or { "test", "/c" }
 	local _argList = util.merge_arrays(_argListInit, { "exit 0" })
-	
-	local _ok, _result = pcall(am.execute, _cli, _argList)
-	test.assert(_ok and _result == 0)
+
+	local _ok = pcall(am.execute, _cli, _argList)
+	test.assert(_ok and recordedExitCode == 0)
 
 	local _argList =  util.merge_arrays(_argListInit, { "exit 179" })
-	local _ok, _result = pcall(am.execute, _cli, _argList)
-	test.assert(_ok and _result == 179)
+	local _ok = pcall(am.execute, _cli, _argList)
+	test.assert(_ok and recordedExitCode == 179)
 
 	proc.EPROC = false
 	local _argList =  util.merge_arrays(_argListInit, { "exit 0" })
-	local _ok, _result = pcall(am.execute, _cli, _argList)
-	test.assert(_ok and _result == 0)
+	local _ok = pcall(am.execute, _cli, _argList)
+	test.assert(_ok and recordedExitCode == 0)
 	local _argList =  util.merge_arrays(_argListInit, { "exit 179" })
-	local _ok, _result = pcall(am.execute, _cli, _argList)
-	test.assert(_ok and _result == 179)
+	local _ok = pcall(am.execute, _cli, _argList)
+	test.assert(_ok and recordedExitCode == 179)
 	proc.EPROC = true
 
 	_cli = {
@@ -266,6 +274,12 @@ test["process cli (external)"] = function()
 				exec =  _isUnixLike and "sh" or "cmd",
 				description = "test cli test command",
 				type = "external"
+			},
+			test2 = {
+				exec =  _isUnixLike and "sh" or "cmd",
+				description = "test cli test command",
+				type = "external",
+				shouldReturn = true
 			}
 		},
 		action = function(_, command, args, _)
@@ -277,26 +291,40 @@ test["process cli (external)"] = function()
 		end
 	}
 
-	local _argList = util.merge_arrays(_argListInit, { "exit 0" })
+	local _argListInit2 = _isUnixLike and { "test2", "-c" } or { "test2", "/c" }
+	local _argList = util.merge_arrays(_argListInit2, { "exit 0" })
 	local _ok, _result = pcall(am.execute, _cli, _argList)
 	test.assert(_ok and _result == 0)
 
+	local _argList = util.merge_arrays(_argListInit, { "exit 0" })
+	local _ok = pcall(am.execute, _cli, _argList)
+	test.assert(_ok and recordedExitCode == 0)
+
 	local _argList = util.merge_arrays(_argListInit, { "exit 179" })
-	local _ok, _result = pcall(am.execute, _cli, _argList)
-	test.assert(_ok and _result == 179)
+	local _ok = pcall(am.execute, _cli, _argList)
+	test.assert(_ok and recordedExitCode == 179)
 
 	proc.EPROC = false
 	local _argList = util.merge_arrays(_argListInit, { "exit 0" })
-	local _ok, _result = pcall(am.execute, _cli, _argList)
-	test.assert(_ok and _result == 0)
+	local _ok = pcall(am.execute, _cli, _argList)
+	test.assert(_ok and recordedExitCode == 0)
 
 	local _argList = util.merge_arrays(_argListInit, { "exit 179" })
-	local _ok, _result = pcall(am.execute, _cli, _argList)
-	test.assert(_ok and _result == 179)
+	local _ok = pcall(am.execute, _cli, _argList)
+	test.assert(_ok and recordedExitCode == 179)
 	proc.EPROC = true
+
+	os.exit = osExit
 end
 
 test["process cli (external - custom env)"] = function()
+	local osExit = os.exit
+
+	local recordedExitCode = nil
+	os.exit = function(exitcode)
+		recordedExitCode = exitcode
+	end
+
 	local _cli = {
 		title = "test cli2",
 		description = "test cli description",
@@ -320,12 +348,14 @@ test["process cli (external - custom env)"] = function()
 	}
 
 	local _argList = _isUnixLike and { "test", "-c", "exit $EXIT_CODE" } or { "test", "/c", "exit %EXIT_CODE%" }
-	local _ok, _result = pcall(am.execute, _cli, _argList)
-	test.assert(_ok and _result == 179)
+	local _ok = pcall(am.execute, _cli, _argList)
+	test.assert(_ok and recordedExitCode == 179)
 
 	_cli.commands.test.environment.EXIT_CODE = 175
-	local _ok, _result = pcall(am.execute, _cli, _argList)
-	test.assert(_ok and _result == 175)
+	local _ok = pcall(am.execute, _cli, _argList)
+	test.assert(_ok and recordedExitCode == 175)
+
+	os.exit = osExit
 end
 
 test["process cli (no-command)"] = function()

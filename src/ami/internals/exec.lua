@@ -20,6 +20,7 @@ local exec = {}
 ---@field injectArgsAfter string[]?
 ---@field stdio ActionStdioType
 ---@field environment table<string, string>?
+---@field shouldReturn boolean?
 
 ---@param destTable string[]
 ---@param toAppend string[]
@@ -33,10 +34,10 @@ local function _append_strings(destTable, toAppend)
 end
 
 ---Executes external program with all arguments passed
+---does not return on successful execution
 ---@param cmd string
 ---@param args CliArg[]
 ---@param options ExternalActionOptions
----@return integer
 function exec.external_action(cmd, args, options)
 	local _args = {}
 	if type(options) ~= "table" then options = {} end
@@ -64,7 +65,10 @@ function exec.external_action(cmd, args, options)
 		end
 		local _ok, _result = proc.safe_exec(cmd .. " " .. execArgs)
 		ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
-		return _result.exitcode
+		if options.shouldReturn then
+			return _result.exitcode
+		end
+		os.exit(_result.exitcode)
 	end
 
 	local desiredStdio = "inherit"
@@ -74,7 +78,10 @@ function exec.external_action(cmd, args, options)
 
 	local _ok, _result = proc.safe_spawn(cmd, _args, { wait = true, stdio = desiredStdio, env = options.environment })
 	ami_assert(_ok, "Failed to execute external action - " .. tostring(_result) .. "!")
-	return _result.exitcode
+	if options.shouldReturn then
+		return _result.exitcode
+	end
+	os.exit(_result.exitcode)
 end
 
 ---@class ExecNativeActionOptions
