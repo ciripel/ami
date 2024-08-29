@@ -42,7 +42,7 @@ os.chdir(_cwd)
 
 -- inject license
 local _content = fs.read_file("../bin/ami.lua")
-local _, _shebangEnd = _content:find("#!/%S*")
+local _, _shebangEnd = _content:find("#!/[^\n]*")
 local _license = [[
 -- Copyright (C) 2024 alis.is
 
