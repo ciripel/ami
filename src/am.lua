@@ -162,6 +162,6 @@ am.execute_extension = _exec.native_action
 ---@diagnostic disable-next-line: undefined-doc-param
 ---@param args CliArg[]?
 ---@diagnostic disable-next-line: undefined-doc-param
----@param injectArgs string[]?
+---@param injectArgs ExternalActionOptions?
 ---@return integer
 am.execute_external = _exec.external_action
