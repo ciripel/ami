@@ -1,8 +1,8 @@
 To get autocomplete for eli std library you have to:
 1. Install [Lua extension from sumneko](https://marketplace.visualstudio.com/items?itemName=sumneko.lua)
 2. Download latest eli and ami meta definitions. 
-   - `eli` meta definitions can be found in [eli releases](https://github.com/cryon-io/eli/releases) as meta.zip.
-   - `ami` meta definitions can be found in [ami releases](https://github.com/cryon-io/ami/releases) as meta.zip.
+   - `eli` meta definitions can be found in [eli releases](https://github.com/alis-is/eli/releases) as meta.zip.
+   - `ami` meta definitions can be found in [ami releases](https://github.com/alis-is/ami/releases) as meta.zip.
 3. Create directory where you want to store meta definitions. For this tutorial we assume `$HOME/lua/meta-definitions`.
 4. Extract downloaded eli's `meta.zip` into `$HOME/lua/meta-definitions`
 5. Rename meta directory for eli meta definitions - `$HOME/lua/meta-definitions/meta` -> `$HOME/lua/meta-definitions/eli`

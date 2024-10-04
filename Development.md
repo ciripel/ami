@@ -3,7 +3,7 @@ To develop AMI based applications you do not need access to AIR repository nor i
 ## Environment Preparation
 
 1. install `ami` and `eli`
-    * `wget https://raw.githubusercontent.com/cryon-io/ami/master/install.sh -O /tmp/install.sh && sh /tmp/install.sh`
+    * `wget https://raw.githubusercontent.com/alis-is/ami/master/install.sh -O /tmp/install.sh && sh /tmp/install.sh`
 2. prepare directories for layers you want to develop
     *  Lets say you want to develop/improve `etho.node` and `etho.binaries` layers 
     *  Create directories for your layers e.g.: `mkdir -p ~/ami/etho.binaries ~/ami/etho.node`
