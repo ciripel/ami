@@ -49,7 +49,7 @@ else
 	local custom_cache_path = true
 	local cache_path = os.getenv("AMI_CACHE")
 	if not cache_path then
-		am.options.CACHE_DIR = "/var/cache/ami"
+		cache_path = "/var/cache/ami"
 		custom_cache_path = false
 	end
 	am.options.CACHE_DIR = cache_path

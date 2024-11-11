@@ -42,6 +42,7 @@ function repOpts.index(t, k)
 end
 
 function repOpts.newindex(t, k, v)
+	if v == nil then return end
 	if k == "DEFAULT_REPOSITORY_URL" then
 		DEFAULT_REPOSITORY_URL = v
 		log_warn("Default repository set to third party repository - " .. tostring(v))

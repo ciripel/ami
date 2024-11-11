@@ -44,6 +44,7 @@ function cacheOpts.index(t, k)
 end
 
 function cacheOpts.newindex(t, k, v)
+	if v == nil then return end
 	if k == "CACHE_DIR" then
 		if v == "false" then
 			rawset(t, "CACHE_DISABLED", true)

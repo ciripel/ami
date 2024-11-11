@@ -52,6 +52,7 @@ local _optionsMeta = {
 		return nil
 	end,
 	__newindex = function(t, k, v)
+		if v == nil then return end
 		for _, hook in ipairs(_newindexHooks) do
 			local _ok = hook(t, k, v)
 			if _ok then return end
