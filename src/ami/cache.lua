@@ -24,8 +24,7 @@ am.cache = {}
 -- // TODO: locks when writing to cache?
 local function _get_cache_sub_dir(subDir)
 	return function()
-		local cacheDir = am.options.CACHE_DIR --[[@as string?]] or os.getenv("AMI_CACHE") or ""
-		return path.combine(cacheDir, subDir)
+		return path.combine(am.options.CACHE_DIR --[[@as string?]] or "", subDir)
 	end
 end
 
